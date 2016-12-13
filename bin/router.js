@@ -15,73 +15,177 @@
  *    limitations under the License.
  **/
 'use strict';
+const pathParser            = require('./path-parser');
+const schemas               = require('./schemas');
 
 const map = new WeakMap();
 
 module.exports = Router;
 
-function Router(configuration) {
+/**
+ * Create a router instance.
+ * @param {object} configuration
+ * @param {string[]} methods
+ * @returns {Router}
+ * @constructor
+ */
+function Router(configuration, methods) {
+    const config = schemas.router.normalize(configuration);
     const router = Object.create(Router.prototype);
-    const routes = {
-        copy: [],
-        delete: [],
-        get: [],
-        head: [],
-        link: [],
-        options: [],
-        patch: [],
-        post: [],
-        purge: [],
-        put: [],
-        unlink: []
-    };
+    const routes = {};
+    methods.forEach(function(method) {
+        routes[method] = [];
+    });
+    map.set(router, {
+        config: config,
+        routes: routes,
+        methods: methods
+    });
     return router;
 }
 
+/**
+ * Create a route that works for any method.
+ * @param {string} path
+ * @param {...function} middleware
+ * @returns {Router}
+ */
 Router.prototype.all = function(path, middleware) {
-
+    const args = arguments;
+    const router = this;
+    const obj = getRouter(this);
+    obj.methods.forEach(function(key) {
+        if (router[key]) router[key].apply(router, args);
+    });
+    return this;
 };
 
-Router.prototype.copy = function(path, middleware) {
-
-};
-
+/**
+ * Create a route that works for DELETE method.
+ * @param {string|RegExp} path
+ * @param {...function} middleware
+ * @returns {Router}
+ */
 Router.prototype.delete = function(path, middleware) {
-
+    definePath(this, 'delete', path, arguments);
+    return this;
 };
 
+/**
+ * Create a route that works for GET method.
+ * @param {string} path
+ * @param {...function} middleware
+ * @returns {Router}
+ */
 Router.prototype.get = function(path, middleware) {
-    const routes = map.get(this);
+    definePath(this, 'delete', path, arguments);
+    return this;
 };
 
+/**
+ * Create a route that works for HEAD method.
+ * @param {string} path
+ * @param {...function} middleware
+ * @returns {Router}
+ */
 Router.prototype.head = function(path, middleware) {
-
+    definePath(this, 'delete', path, arguments);
+    return this;
 };
 
-Router.prototype.link = function(path, middleware) {
-
-};
-
+/**
+ * Create a route that works for OPTIONS method.
+ * @param {string} path
+ * @param {...function} middleware
+ * @returns {Router}
+ */
 Router.prototype.options = function(path, middleware) {
-
+    definePath(this, 'delete', path, arguments);
+    return this;
 };
 
+/**
+ * Create a route that works for PATCH method.
+ * @param {string} path
+ * @param {...function} middleware
+ * @returns {Router}
+ */
 Router.prototype.patch = function(path, middleware) {
-
+    definePath(this, 'delete', path, arguments);
+    return this;
 };
 
+/**
+ * Create a route that works for POST method.
+ * @param {string} path
+ * @param {...function} middleware
+ * @returns {Router}
+ */
 Router.prototype.post = function(path, middleware) {
-
+    definePath(this, 'delete', path, arguments);
+    return this;
 };
 
-Router.prototype.purge = function(path, middleware) {
-
-};
-
+/**
+ * Create a route that works for PUT method.
+ * @param {string} path
+ * @param {...function} middleware
+ * @returns {Router}
+ */
 Router.prototype.put = function(path, middleware) {
-
+    definePath(this, 'delete', path, arguments);
+    return this;
 };
 
-Router.prototype.unlink = function(path, middleware) {
+function definePath(context, method, path, args) {
+    const router = getRouter(context);
+    if (router.methods.indexOf(method) === -1) {
+        const err = Error('Method not supported by sans-server instance:' + method);
+        err.code = 'ESSRMET';
+        throw err;
+    }
 
-};
+    const parser = pathParser.parser(path, router.config.paramFormat);
+    const runner = getMiddlewareRunner(context, args, 1);
+    router.routes[method].push({ parser: parser, runner: runner });
+}
+
+function getMiddlewareRunner(context, args, offset) {
+    const middleware = [];
+    for (let i = offset; i < args.length; i++) {
+        if (typeof args[i] !== 'function') {
+            const err = Error('Invalid path handler specifed. Expected a function. Received: ' + args[i]);
+            err.code = 'ESSRHDLR';
+            throw err;
+        }
+        middleware.push(args[i]);
+    }
+    return function(req, res, next) {
+        const chain = middleware.slice(0);
+        runMiddleware(context, chain, req, res, function(err) {
+            if (err) return next(err);
+            next();
+        })
+    }
+}
+
+function getRouter(router) {
+    if (map.has(router)) return map.get(router);
+    const err = Error('Invalid context. This must be a Router instance. Received: ' + router);
+    err.code = 'ESSRCTX';
+    throw err;
+}
+
+function runMiddleware(context, chain, req, res) {
+    if (chain.length > 0 && !res.sent) {
+        const callback = chain.shift();
+        try {
+            callback.call(context, req, res, function (err) {
+                if (err && !res.sent) return res.send(err);
+                runMiddleware(context, chain, req, res);
+            });
+        } catch (e) {
+            res.send(e);
+        }
+    }
+}
