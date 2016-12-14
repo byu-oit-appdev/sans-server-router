@@ -81,6 +81,22 @@ Router.prototype.get = function(path, middleware) {
 };
 
 /**
+ * Get the function that should be called for the specific method and URL.
+ * @param {string} method
+ * @param {string} path
+ * @returns {Function|undefined}
+ */
+Router.prototype.handler = function(method, path) {
+    const router = getRouter(this);
+    method = method.toLowerCase();
+    const routes = this.routes.hasOwnProperty(method) ? this.routes[method] : [];
+    for (let i = 0; i < routes.length; i++) {
+        const params = routes[i].parser(path);
+        if (params) return routes[i].runner;
+    }
+};
+
+/**
  * Create a route that works for HEAD method.
  * @param {string} path
  * @param {...function} middleware
