@@ -79,7 +79,7 @@ Router.prototype.delete = function(path, middleware) {
  * @returns {Router}
  */
 Router.prototype.get = function(path, middleware) {
-    definePath(this, 'delete', path, arguments);
+    definePath(this, 'get', path, arguments);
     return this;
 };
 
@@ -90,7 +90,7 @@ Router.prototype.get = function(path, middleware) {
  * @returns {Router}
  */
 Router.prototype.head = function(path, middleware) {
-    definePath(this, 'delete', path, arguments);
+    definePath(this, 'head', path, arguments);
     return this;
 };
 
@@ -101,7 +101,7 @@ Router.prototype.head = function(path, middleware) {
  * @returns {Router}
  */
 Router.prototype.options = function(path, middleware) {
-    definePath(this, 'delete', path, arguments);
+    definePath(this, 'options', path, arguments);
     return this;
 };
 
@@ -112,7 +112,7 @@ Router.prototype.options = function(path, middleware) {
  * @returns {Router}
  */
 Router.prototype.patch = function(path, middleware) {
-    definePath(this, 'delete', path, arguments);
+    definePath(this, 'patch', path, arguments);
     return this;
 };
 
@@ -123,7 +123,7 @@ Router.prototype.patch = function(path, middleware) {
  * @returns {Router}
  */
 Router.prototype.post = function(path, middleware) {
-    definePath(this, 'delete', path, arguments);
+    definePath(this, 'post', path, arguments);
     return this;
 };
 
@@ -134,9 +134,15 @@ Router.prototype.post = function(path, middleware) {
  * @returns {Router}
  */
 Router.prototype.put = function(path, middleware) {
-    definePath(this, 'delete', path, arguments);
+    definePath(this, 'put', path, arguments);
     return this;
 };
+
+/**
+ * List the http methods that have functions.
+ * @type {string[]}
+ */
+Router.methods = ['delete', 'get', 'head', 'options', 'path', 'post', 'put'];
 
 function definePath(context, method, path, args) {
     const router = getRouter(context);
