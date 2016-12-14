@@ -24,12 +24,12 @@ module.exports = Router;
 
 /**
  * Create a router instance.
- * @param {object} configuration
+ * @param {object} [configuration]
  * @returns {Router}
  * @constructor
  */
 function Router(configuration) {
-    const config = schemas.router.normalize(configuration);
+    const config = schemas.router.normalize(configuration || {});
     const router = Object.create(Router.prototype);
     const routes = {};
     Router.methods.forEach(function(method) {
@@ -145,23 +145,24 @@ Router.methods = ['delete', 'get', 'head', 'options', 'path', 'post', 'put'];
 function definePath(context, method, path, args) {
     const router = getRouter(context);
     const parser = pathParser.parser(path, router.config.paramFormat);
-    const runner = getMiddlewareRunner(context, args, 1);
+    const runner = getMiddlewareRunner(args);
     router.routes[method].push({ parser: parser, runner: runner });
 }
 
-function getMiddlewareRunner(context, args, offset) {
+function getMiddlewareRunner(args) {
     const middleware = [];
-    for (let i = offset; i < args.length; i++) {
-        if (typeof args[i] !== 'function') {
-            const err = Error('Invalid path handler specifed. Expected a function. Received: ' + args[i]);
+    for (let i = 0; i < args.length; i++) {
+        const mw = args[i];
+        if (typeof mw !== 'function') {
+            const err = Error('Invalid path handler specified. Expected a function. Received: ' + mw);
             err.code = 'ESSRHDLR';
             throw err;
         }
-        middleware.push(args[i]);
+        middleware.push(mw);
     }
     return function(req, res, next) {
         const chain = middleware.slice(0);
-        runMiddleware(context, chain, req, res, function(err) {
+        runMiddleware(this, chain, req, res, function(err) {
             if (err) return next(err);
             next();
         })
