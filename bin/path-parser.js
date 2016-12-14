@@ -15,9 +15,9 @@
  *    limitations under the License.
  **/
 'use strict';
-const rxColon = /^:([_$a-z][_$a-z0-9]*)(\*|\?|\*\?)?$/;
-const rxHandlebar = /^{([_$a-z][_$a-z0-9]*)(\*|\?|\*\?)?}$/;
-const rxDoubleHandlebar = /^{{([_$a-z][_$a-z0-9]*)(\*|\?|\*\?)?}}$/;
+const rxColon = /^:([_$a-z][_$a-z0-9]*)(\*|\?)?$/;
+const rxHandlebar = /^{([_$a-z][_$a-z0-9]*)(\*|\?)?}$/;
+const rxDoubleHandlebar = /^{{([_$a-z][_$a-z0-9]*)(\*|\?)?}}$/;
 
 /**
  * Get a function that can be called to provide parameter matches for url paths.
@@ -79,6 +79,18 @@ exports.createRxFromStringPath = function (path, format, params) {
                 : rxDoubleHandlebar;
 
             const match = rx.exec(item);
+            if (item === '*') {
+                return prefix + '[\\s\\S]*?';
+            } else if (match) {
+                const modifier = match[2];
+                if (params) params.push(match);
+                if (modifier === '*') return prefix + '([\\s\\S]*?)';
+                if (modifier === '?') return '(?:' + prefix + '([^\\/]+))?';
+                if (!modifier) return prefix + '([^\\/]+)';
+            } else {
+                return prefix + item;
+            }
+/*
             if (match || item === '*') {
                 const modifier = match ? match[2] : '*';
                 if (params) params.push(match);
@@ -89,7 +101,7 @@ exports.createRxFromStringPath = function (path, format, params) {
                 }
             } else {
                 return prefix + item;
-            }
+            }*/
         })
         .join('');
     return new RegExp('^' + str + '$');

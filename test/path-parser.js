@@ -46,19 +46,13 @@ describe('path-parser', () => {
         it('/:foo*', () => {
             const params = [];
             const rx = parser.createRxFromStringPath('/:foo*', 'colon', params);
-            expect(rx.toString()).to.equal('/^([\\s\\S]+?)$/');
+            expect(rx.toString()).to.equal('/^([\\s\\S]*?)$/');
         });
 
         it('/:foo?', () => {
             const params = [];
             const rx = parser.createRxFromStringPath('/:foo?', 'colon', params);
             expect(rx.toString()).to.equal('/^(?:([^\\/]+))?$/');
-        });
-
-        it('/:foo*?', () => {
-            const params = [];
-            const rx = parser.createRxFromStringPath('/:foo*?', 'colon', params);
-            expect(rx.toString()).to.equal('/^(?:([\\s\\S]+?))?$/');
         });
 
         it('/{foo}', () => {
