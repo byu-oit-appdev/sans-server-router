@@ -51,8 +51,7 @@ function Router(configuration) {
 Router.prototype.all = function(path, middleware) {
     const args = arguments;
     const router = this;
-    const obj = getRouter(this);
-    obj.methods.forEach(function(key) {
+    Router.methods.forEach(function(key) {
         if (router[key]) router[key].apply(router, args);
     });
     return this;
@@ -166,7 +165,7 @@ Object.defineProperty(Router.prototype, 'routes', {
  * List the http methods that have functions.
  * @type {string[]}
  */
-Router.methods = ['delete', 'get', 'head', 'options', 'path', 'post', 'put'];
+Router.methods = ['delete', 'get', 'head', 'options', 'patch', 'post', 'put'];
 
 function definePath(context, method, path, args) {
     const router = getRouter(context);
@@ -177,7 +176,7 @@ function definePath(context, method, path, args) {
 
 function getMiddlewareRunner(args) {
     const middleware = [];
-    for (let i = 0; i < args.length; i++) {
+    for (let i = 1; i < args.length; i++) {
         const mw = args[i];
         if (typeof mw !== 'function') {
             const err = Error('Invalid path handler specified. Expected a function. Received: ' + mw);
@@ -188,10 +187,7 @@ function getMiddlewareRunner(args) {
     }
     return function(req, res, next) {
         const chain = middleware.slice(0);
-        runMiddleware(this, chain, req, res, function(err) {
-            if (err) return next(err);
-            next();
-        })
+        runMiddleware(this, chain, req, res);
     }
 }
 
