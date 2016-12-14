@@ -21,7 +21,7 @@ const rxDoubleHandlebar = /^{{([_$a-z][_$a-z0-9]*)(\*|\?|\*\?)?}}$/;
 
 /**
  * Get a function that can be called to provide parameter matches for url paths.
- * @param {string} path The matching path descriptor.
+ * @param {string|RegExp} path The matching path descriptor.
  * @param {string} [format]
  * @returns {Function}
  */
@@ -47,12 +47,15 @@ exports.parser = function (path, format) {
         const match = rx.exec(urlPath);
         if (!match) return null;
 
-        const parameters = {};
-        for (let i = 1; i < match.length; i++) {
-            if (match[i] !== undefined) parameters[params[i - 1][1]] = match[i];
+        if (path === rx) {
+            return match;
+        } else {
+            const parameters = {};
+            for (let i = 1; i < match.length; i++) {
+                if (match[i] !== undefined) parameters[params[i - 1][1]] = match[i];
+            }
+            return parameters;
         }
-
-        return parameters;
     }
 };
 
