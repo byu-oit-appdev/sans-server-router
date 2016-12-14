@@ -41,6 +41,7 @@ function Router(configuration, methods) {
         routes: routes,
         methods: methods
     });
+    router.routes = routes;
     return router;
 }
 
