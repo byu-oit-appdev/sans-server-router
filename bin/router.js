@@ -29,17 +29,16 @@ module.exports = Router;
  * @returns {Router}
  * @constructor
  */
-function Router(configuration, methods) {
+function Router(configuration) {
     const config = schemas.router.normalize(configuration);
     const router = Object.create(Router.prototype);
     const routes = {};
-    methods.forEach(function(method) {
+    Router.methods.forEach(function(method) {
         routes[method] = [];
     });
     map.set(router, {
         config: config,
-        routes: routes,
-        methods: methods
+        routes: routes
     });
     router.routes = routes;
     return router;
@@ -146,12 +145,6 @@ Router.methods = ['delete', 'get', 'head', 'options', 'path', 'post', 'put'];
 
 function definePath(context, method, path, args) {
     const router = getRouter(context);
-    if (router.methods.indexOf(method) === -1) {
-        const err = Error('Method not supported by sans-server instance:' + method);
-        err.code = 'ESSRMET';
-        throw err;
-    }
-
     const parser = pathParser.parser(path, router.config.paramFormat);
     const runner = getMiddlewareRunner(context, args, 1);
     router.routes[method].push({ parser: parser, runner: runner });
