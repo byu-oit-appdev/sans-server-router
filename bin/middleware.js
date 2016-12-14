@@ -38,15 +38,7 @@ module.exports = function(configuration) {
 
     // return middleware function
     return function router(req, res, next) {
-        const method = req.method.toLowerCase();
-        const routes = instance.routes.hasOwnProperty(method) ? instance.routes[method] : [];
-        for (let i = 0; i < routes.length; i++) {
-            const params = routes[i].parser(req.path);
-            if (params) {
-                req.params = params;
-                routes[i].runner(req, res, next);
-                break;
-            }
-        }
+        const handler = instance.handler(req.method, req.path);
+        handler(req, res, next);
     };
 };
