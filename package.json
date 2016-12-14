@@ -1,0 +1,39 @@
+{
+  "name": "sans-server-router",
+  "version": "0.0.1",
+  "description": "An express like router for sans-server.",
+  "main": "index.js",
+  "bin": {
+    "sans-server-router": "middleware.js"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "object-schemata": "^1.0.8"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0",
+    "nyc": "^10.0.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/byu-oit-appdev/sans-server-router.git"
+  },
+  "keywords": [
+    "sans-server",
+    "middleware",
+    "sans-server middleware",
+    "router"
+  ],
+  "author": "James Speirs <james.speirs@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/byu-oit-appdev/sans-server-router/issues"
+  },
+  "homepage": "https://github.com/byu-oit-appdev/sans-server-router#readme"
+}
