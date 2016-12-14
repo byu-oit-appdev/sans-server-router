@@ -25,7 +25,6 @@ module.exports = Router;
 /**
  * Create a router instance.
  * @param {object} configuration
- * @param {string[]} methods
  * @returns {Router}
  * @constructor
  */
