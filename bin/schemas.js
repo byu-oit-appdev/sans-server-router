@@ -20,7 +20,7 @@ const schemata              = require('object-schemata');
 exports.router = schemata({
     paramFormat: {
         help: 'Must be one of: colon, handlebar, doubleHandlebar',
-        default: 'colon',
+        defaultValue: 'colon',
         validate: function(v) { return ['colon', 'handlebar', 'doubleHandlebar'].indexOf(v) === -1 }
     }
 });
