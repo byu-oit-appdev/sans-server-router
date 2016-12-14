@@ -82,7 +82,8 @@ describe('path-parser', () => {
         });
 
         describe('rx provided', () => {
-            const fn = parser.parser(/^foo\/([^\/]+)$/);
+            let fn;
+            before(() => fn = parser.parser(/^foo\/([^\/]+)$/));
 
             it('foo', () => {
                 expect(fn('foo')).to.deep.equal(null);
@@ -95,7 +96,8 @@ describe('path-parser', () => {
         });
 
         describe('foo', () => {
-            const fn = parser.parser('foo', 'colon');
+            let fn;
+            before(() => fn = parser.parser('foo', 'colon'));
 
             it('foo', () => {
                 expect(fn('foo')).to.deep.equal({});
@@ -107,7 +109,8 @@ describe('path-parser', () => {
         });
 
         describe(':foo', () => {
-            const fn = parser.parser(':foo', 'colon');
+            let fn;
+            before(() => fn = parser.parser(':foo', 'colon'));
 
             it('foo', () => {
                 expect(fn('foo')).to.deep.equal({ foo: 'foo' });
@@ -119,7 +122,8 @@ describe('path-parser', () => {
         });
 
         describe('foo/:bar', () => {
-            const fn = parser.parser('foo/:bar', 'colon');
+            let fn;
+            before(() => fn = parser.parser('foo/:bar', 'colon'));
 
             it('foo', () => {
                 expect(fn('foo')).to.deep.equal(null);
@@ -135,7 +139,8 @@ describe('path-parser', () => {
         });
 
         describe('foo/:bar/:baz', () => {
-            const fn = parser.parser('foo/:bar/:baz', 'colon');
+            let fn;
+            before(() => fn = parser.parser('foo/:bar/:baz', 'colon'));
 
             it('foo', () => {
                 expect(fn('foo')).to.equal(null);
@@ -151,7 +156,8 @@ describe('path-parser', () => {
         });
 
         describe('foo/:bar/baz', () => {
-            const fn = parser.parser('foo/:bar/baz', 'colon');
+            let fn;
+            before(() => fn = parser.parser('foo/:bar/baz', 'colon'));
 
             it('foo/bar/baz', () => {
                 expect(fn('foo/bar/baz')).to.deep.equal({ bar: 'bar' });
@@ -163,7 +169,8 @@ describe('path-parser', () => {
         });
 
         describe('foo/:bar*', () => {
-            const fn = parser.parser('foo/:bar*', 'colon');
+            let fn;
+            before(() => fn = parser.parser('foo/:bar*', 'colon'));
 
             it('foo/bar/baz', () => {
                 expect(fn('foo/bar/baz')).to.deep.equal({ bar: 'bar/baz' });
@@ -179,7 +186,8 @@ describe('path-parser', () => {
         });
 
         describe('foo/:bar?', () => {
-            const fn = parser.parser('foo/:bar?', 'colon');
+            let fn;
+            before(() => fn = parser.parser('foo/:bar?', 'colon'));
 
             it('foo/bar/baz', () => {
                 expect(fn('foo/bar/baz')).to.deep.equal(null);
@@ -195,7 +203,8 @@ describe('path-parser', () => {
         });
 
         describe('foo/:bar?/:baz', () => {
-            const fn = parser.parser('foo/:bar?/:baz', 'colon');
+            let fn;
+            before(() => fn = parser.parser('foo/:bar?/:baz', 'colon'));
 
             it('foo/bar/baz', () => {
                 expect(fn('foo/bar/baz')).to.deep.equal({ bar: 'bar', baz: 'baz' });
@@ -211,7 +220,8 @@ describe('path-parser', () => {
         });
 
         describe('foo/:bar?/baz', () => {
-            const fn = parser.parser('foo/:bar?/baz', 'colon');
+            let fn;
+            before(() => fn = parser.parser('foo/:bar?/baz', 'colon'));
 
             it('foo/bar/baz', () => {
                 expect(fn('foo/bar/baz')).to.deep.equal({ bar: 'bar' });
@@ -227,7 +237,8 @@ describe('path-parser', () => {
         });
 
         describe('foo/:bar?/baz/:abc', () => {
-            const fn = parser.parser('foo/:bar?/baz/:abc', 'colon');
+            let fn;
+            before(() => fn = parser.parser('foo/:bar?/baz/:abc', 'colon'));
 
             it('foo/bar/baz/abc', () => {
                 expect(fn('foo/bar/baz/abc')).to.deep.equal({ abc: 'abc', bar: 'bar' });
@@ -243,7 +254,8 @@ describe('path-parser', () => {
         });
 
         describe('foo/:bar*/baz', () => {
-            const fn = parser.parser('foo/:bar*/baz', 'colon');
+            let fn;
+            before(() => fn = parser.parser('foo/:bar*/baz', 'colon'));
 
             it('foo/bar/baz', () => {
                 expect(fn('foo/bar/baz')).to.deep.equal({ bar: 'bar' });
@@ -259,7 +271,8 @@ describe('path-parser', () => {
         });
 
         describe('foo/:bar*/:baz*', () => {
-            const fn = parser.parser('foo/:bar*/:baz*', 'colon');
+            let fn;
+            before(() => fn = parser.parser('foo/:bar*/:baz*', 'colon'));
 
             it('foo/bar/baz', () => {
                 expect(fn('foo/bar/baz')).to.deep.equal({ bar: 'bar', baz: 'baz' });
