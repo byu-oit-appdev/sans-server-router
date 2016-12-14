@@ -75,7 +75,24 @@ describe('path-parser', () => {
 
     });
 
-    describe('parser', () => {
+    describe('#parser', () => {
+
+        it('invalid input', () => {
+            expect(() => { parser.parser() }).to.throw(Error);
+        });
+
+        describe('rx provided', () => {
+            const fn = parser.parser(/^foo\/([^\/]+)$/);
+
+            it('foo', () => {
+                expect(fn('foo')).to.deep.equal(null);
+            });
+
+            it('foo/bar', () => {
+                const match = /^foo\/([^\/]+)$/.exec('foo/bar');
+                expect(fn('foo/bar')).to.deep.equal(match);
+            });
+        });
 
         describe('foo', () => {
             const fn = parser.parser('foo', 'colon');
