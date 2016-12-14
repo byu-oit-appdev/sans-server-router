@@ -21,6 +21,6 @@ exports.router = schemata({
     paramFormat: {
         help: 'Must be one of: colon, handlebar, doubleHandlebar',
         defaultValue: 'colon',
-        validate: function(v) { return ['colon', 'handlebar', 'doubleHandlebar'].indexOf(v) === -1 }
+        validate: function(v) { return ['colon', 'handlebar', 'doubleHandlebar'].indexOf(v) !== -1 }
     }
 });
