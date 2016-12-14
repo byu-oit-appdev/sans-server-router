@@ -3,9 +3,6 @@
   "version": "0.0.1",
   "description": "An express like router for sans-server.",
   "main": "index.js",
-  "bin": {
-    "sans-server-router": "middleware.js"
-  },
   "directories": {
     "test": "test"
   },
@@ -15,7 +12,8 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^3.2.0",
-    "nyc": "^10.0.0"
+    "nyc": "^10.0.0",
+    "sans-server": "github:byu-oit-appdev/sans-server"
   },
   "scripts": {
     "coverage": "nyc mocha",
