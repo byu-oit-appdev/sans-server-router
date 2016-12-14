@@ -39,7 +39,6 @@ function Router(configuration) {
         config: config,
         routes: routes
     });
-    router.routes = routes;
     return router;
 }
 
@@ -135,6 +134,17 @@ Router.prototype.put = function(path, middleware) {
     definePath(this, 'put', path, arguments);
     return this;
 };
+
+/**
+ * Get the routes assigned to the router.
+ * @type {Object<string,Array>}
+ */
+Object.defineProperty(Router.prototype, 'routes', {
+    get: function() {
+        const router = getRouter(this);
+        return router.routes;
+    }
+});
 
 /**
  * List the http methods that have functions.
