@@ -88,11 +88,30 @@ Router.prototype.get = function(path, middleware) {
 Router.prototype.handler = function(method, path) {
     const router = getRouter(this);
     method = method.toLowerCase();
-    const routes = this.routes.hasOwnProperty(method) ? this.routes[method] : [];
-    for (let i = 0; i < routes.length; i++) {
-        const params = routes[i].parser(path);
-        if (params) return routes[i].runner;
+    const routes = this.routes.hasOwnProperty(method) ? this.routes[method].slice(0) : [];
+
+    function nextRoute(req, res, next) {
+        let route;
+        let params;
+
+        // find the next route that matches the path
+        while (routes.length) {
+            route = routes.shift();
+            params = route.parser(path);
+            if (params) break;
+        }
+
+        // if there is no match then exit
+        if (!params) return next();
+
+        // execute the route
+        route.runner(req, res, function(err) {
+            if (err) return next(err);
+            nextRoute(req, res, next);
+        });
     }
+
+    return nextRoute;
 };
 
 /**
@@ -187,7 +206,7 @@ function getMiddlewareRunner(args) {
     }
     return function(req, res, next) {
         const chain = middleware.slice(0);
-        runMiddleware(this, chain, req, res);
+        runMiddleware(this, chain, req, res, next);
     }
 }
 
@@ -198,16 +217,18 @@ function getRouter(router) {
     throw err;
 }
 
-function runMiddleware(context, chain, req, res) {
+function runMiddleware(context, chain, req, res, next) {
     if (chain.length > 0 && !res.sent) {
         const callback = chain.shift();
         try {
             callback.call(context, req, res, function (err) {
                 if (err && !res.sent) return res.send(err);
-                runMiddleware(context, chain, req, res);
+                runMiddleware(context, chain, req, res, next);
             });
         } catch (e) {
             res.send(e);
         }
+    } else if (!res.sent) {
+        next();
     }
 }

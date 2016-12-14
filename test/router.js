@@ -180,6 +180,25 @@ describe('router', () => {
         }
     });
 
+    it('non terminal router', done => {
+        const num = '' + Math.random();
+        const req = Request({ method: 'GET', path: '/' });
+        const res = Response(req, (err, data) => {
+            expect(data.body).to.equal(num);
+            done();
+        });
+        Router()
+            .get('*', function(req, res, next) {
+                req.foo = num;
+                next();
+            })
+            .get('*', function(req, res, next) {
+                expect(req.foo).to.equal(num);
+                res.send(num);
+            })
+            .handler(req.method, req.path)(req, res);
+    });
+
 
 
 });
