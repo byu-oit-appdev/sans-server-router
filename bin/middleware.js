@@ -43,6 +43,7 @@ module.exports = function(configuration) {
         for (let i = 0; i < routes.length; i++) {
             const params = routes[i].parser(req.path);
             if (params) {
+                req.params = params;
                 routes[i].runner(req, res, next);
                 break;
             }
