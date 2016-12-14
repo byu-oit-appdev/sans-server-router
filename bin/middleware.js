@@ -20,10 +20,10 @@ const Router                = require('./router');
 module.exports = function(configuration) {
     const sansServer = this;
     const methods = sansServer.supportedMethods().map(function(v) { return v.toLowerCase(); });
-    const router = Router(configuration);
+    const instance = Router(configuration);
 
     // add functions to the sans-server instance
-    sansServer.all = router.all;
+    sansServer.all = instance.all;
     Router.methods.forEach(function(method) {
         if (methods.indexOf(method) === -1) {
             sansServer[method] = function() {
@@ -32,14 +32,14 @@ module.exports = function(configuration) {
                 throw err;
             };
         } else {
-            sansServer[method] = router[method];
+            sansServer[method] = instance[method];
         }
     });
 
     // return middleware function
-    return function sansServerRouter(req, res, next) {
+    return function router(req, res, next) {
         const method = req.method.toLowerCase();
-        const routes = router.routes.hasOwnProperty(method) ? router.routes[method] : [];
+        const routes = instance.routes.hasOwnProperty(method) ? instance.routes[method] : [];
         for (let i = 0; i < routes.length; i++) {
             const params = routes[i].parser(req.path);
             if (params) {
