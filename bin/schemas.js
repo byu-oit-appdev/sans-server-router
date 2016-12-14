@@ -15,3 +15,12 @@
  *    limitations under the License.
  **/
 'use strict';
+const schemata              = require('object-schemata');
+
+exports.router = schemata({
+    paramFormat: {
+        help: 'Must be one of: colon, handlebar, doubleHandlebar',
+        default: 'colon',
+        validate: function(v) { return ['colon', 'handlebar', 'doubleHandlebar'].indexOf(v) === -1 }
+    }
+});
