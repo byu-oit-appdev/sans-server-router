@@ -17,10 +17,15 @@
 'use strict';
 const Router                = require('./router');
 
+/**
+ * Add methods to sans-server instance and return middleware for handling routes.
+ * @param {Object} [configuration={}]
+ * @returns {Function} a middleware function
+ */
 module.exports = function(configuration) {
     const sansServer = this;
     const methods = sansServer.supportedMethods().map(function(v) { return v.toLowerCase(); });
-    const instance = Router(configuration);
+    const instance = Router(configuration || {});
 
     // add functions to the sans-server instance
     sansServer.all = instance.all;
