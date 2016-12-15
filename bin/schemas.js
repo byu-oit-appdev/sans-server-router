@@ -18,6 +18,10 @@
 const schemata              = require('object-schemata');
 
 exports.router = schemata({
+    caseInsensitive: {
+        defaultValue: true,
+        transform: function(v) { return !!v }
+    },
     paramFormat: {
         help: 'Must be one of: colon, handlebar, doubleHandlebar',
         defaultValue: 'colon',
