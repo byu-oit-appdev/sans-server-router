@@ -19,13 +19,13 @@ const Router                = require('./router');
 
 /**
  * Add methods to sans-server instance and return middleware for handling routes.
+ * @param {SansServer} sansServer
  * @param {Object} [configuration={}]
  * @returns {Function} a middleware function
  */
-module.exports = function(configuration) {
-    const sansServer = this;
-    const methods = sansServer.supportedMethods().map(function(v) { return v.toLowerCase(); });
+module.exports = function(sansServer, configuration) {
     const instance = Router(configuration || {});
+    const methods = sansServer.supportedMethods().map(function(v) { return v.toLowerCase(); });
 
     // add functions to the sans-server instance
     sansServer.all = instance.all;
@@ -37,7 +37,9 @@ module.exports = function(configuration) {
                 throw err;
             };
         } else {
-            sansServer[method] = instance[method];
+            sansServer[method] = function() {
+                instance[method].apply(instance, arguments);
+            };
         }
     });
 
