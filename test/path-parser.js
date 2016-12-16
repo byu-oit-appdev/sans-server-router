@@ -297,6 +297,44 @@ describe('path-parser', () => {
             });
         });
 
+        describe('*', () => {
+            let fn;
+            before(() => fn = parser.parser('*', 'colon'));
+
+            it('foo/bar/baz', () => {
+                expect(fn('foo/bar/baz')).to.deep.equal({});
+            });
+
+            it('foo/bar/baz/abc', () => {
+                expect(fn('foo/bar/baz/abc')).to.deep.equal({});
+            });
+
+            it('foo/bar/be/que/baz', () => {
+                expect(fn('foo/bar/be/que/baz')).to.deep.equal({});
+            });
+
+            it('foo', () => {
+                expect(fn('foo')).to.deep.equal({});
+            });
+        });
+
+        describe(':lead*/baz', () => {
+            let fn;
+            before(() => fn = parser.parser('*', 'colon'));
+
+            it('foo/bar/baz', () => {
+                expect(fn('foo/bar/baz')).to.deep.equal({ lead: 'foo/bar' });
+            });
+
+            it('foo/bar/baz/abc', () => {
+                expect(fn('foo/bar/baz/abc')).to.deep.equal(null);
+            });
+
+            it('foo/bar/be/que/baz', () => {
+                expect(fn('foo/bar/be/que/baz')).to.deep.equal({ lead: 'foo/bar/be/que' });
+            });
+        });
+
     });
 
 });
