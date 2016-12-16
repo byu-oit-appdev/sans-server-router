@@ -132,9 +132,31 @@ Static paths have no parameters and must match the incoming request path exactly
 
 ### Parameter Paths
 
-Paths can have parameters defined in three formats: `colon` the default, `handlebar`, or `doubleHandlebar`. The format must be consistent and is defined with the [instantiation of the middleware](#middleare-options). Regardless of the format used, the paths are parsed the same.
+Paths can have parameters defined in three formats: `colon` the default, `handlebar`, or `doubleHandlebar`. The format must be consistent for each router instance and is defined with the [instantiation of the middleware](#middleare-options). Regardless of the format used, the paths are parsed the same.
 
-TODO: talk about params formats, wildcards, and optional params
+Once a route is selected, the values for the parameters are stored on an object in the request: `req.params`. This object's properties are the names of the parameters and it's values are taken from the path.
+
+#### Parameter Formats
+
+- *colon* - `/path/:param` - The parameter is defined with a colon.
+- *handlebar* - `/path/{param}` - The parameter is surrounded by handlebars.
+- *doubleHandlebar* - `/path/{{param}}` - The parameter is surrounded by double handlebars.
+
+#### Wildcards
+
+Use wildcards to allow matching across path delimiters.
+
+- `*` will match everything.
+- `/path/*` will match `/path/foo`, `/path/bar`, etc. but will not match just `/path`.
+- `/path/:foo*` will match `/path/abc/def` etc.
+- `:lead*/dest` will match `/abc/xyz/dest` or anything else that ends with `dest`.
+
+#### Optional Parameters
+
+A parameter name followed by a `?` is an optional parameter.
+
+- `/path/:optParam?` will match `/path` and `/path/foo`.
+- `/:param?/path` will match `/path` and `abc/path`.
 
 ### Regular Expressions
 
