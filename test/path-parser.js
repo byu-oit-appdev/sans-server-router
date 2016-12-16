@@ -21,6 +21,8 @@ const parser                = require('../bin/path-parser');
 describe('path-parser', () => {
 
     describe('#createRxFromStringPath', () => {
+        const p = parser.rx.param;
+        const w = parser.rx.wildcard;
 
         it('foo', () => {
             const rx = parser.createRxFromStringPath('foo', 'colon');
@@ -40,31 +42,41 @@ describe('path-parser', () => {
         it('/:foo', () => {
             const params = [];
             const rx = parser.createRxFromStringPath('/:foo', 'colon', params);
-            expect(rx.toString()).to.equal('/^([^\\/]+)$/');
+            expect(rx.toString()).to.equal('/^(' + p + '+?)$/');
         });
 
         it('/:foo*', () => {
             const params = [];
             const rx = parser.createRxFromStringPath('/:foo*', 'colon', params);
-            expect(rx.toString()).to.equal('/^([\\s\\S]*?)$/');
+            expect(rx.toString()).to.equal('/^(' + w + '*?)$/');
         });
 
         it('/:foo?', () => {
             const params = [];
             const rx = parser.createRxFromStringPath('/:foo?', 'colon', params);
-            expect(rx.toString()).to.equal('/^(?:([^\\/]+))?$/');
+            expect(rx.toString()).to.equal('/^(?:(' + p + '+?))?$/');
         });
 
         it('/{foo}', () => {
             const params = [];
             const rx = parser.createRxFromStringPath('/{foo}', 'handlebar', params);
-            expect(rx.toString()).to.equal('/^([^\\/]+)$/');
+            expect(rx.toString()).to.equal('/^(' + p + '+?)$/');
         });
 
         it('/{{foo}}', () => {
             const params = [];
             const rx = parser.createRxFromStringPath('/{{foo}}', 'doubleHandlebar', params);
-            expect(rx.toString()).to.equal('/^([^\\/]+)$/');
+            expect(rx.toString()).to.equal('/^(' + p + '+?)$/');
+        });
+
+        it('/:foo/:bar', () => {
+            const rx = parser.createRxFromStringPath('/:foo/:bar');
+            expect(rx.toString()).to.equal('/^(' + p + '+?)\\/(' + p + '+?)$/');
+        });
+
+        it('/:foo,:bar', () => {
+            const rx = parser.createRxFromStringPath('/:foo,:bar');
+            expect(rx.toString()).to.equal('/^(' + p + '+?)\\,(' + p + '+?)$/');
         });
 
     });

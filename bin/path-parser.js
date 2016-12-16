@@ -15,9 +15,6 @@
  *    limitations under the License.
  **/
 'use strict';
-const rxColon = /^:([_$a-z][_$a-z0-9]*)(\*|\?)?$/;
-const rxHandlebar = /^{([_$a-z][_$a-z0-9]*)(\*|\?)?}$/;
-const rxDoubleHandlebar = /^{{([_$a-z][_$a-z0-9]*)(\*|\?)?}}$/;
 
 /**
  * Get a function that can be called to provide parameter matches for url paths.
@@ -52,7 +49,7 @@ exports.parser = function (path, format) {
         } else {
             const parameters = {};
             for (let i = 1; i < match.length; i++) {
-                if (match[i] !== undefined) parameters[params[i - 1][1]] = match[i];
+                if (match[i] !== undefined) parameters[params[i - 1]] = match[i];
             }
             return parameters;
         }
@@ -69,40 +66,51 @@ exports.parser = function (path, format) {
 exports.createRxFromStringPath = function (path, format, params) {
     if (!format) format = 'colon';
     path = path.replace(/^\//, '').replace(/\/$/, '');
-    const str = path.split('/')
-        .map(function(item, index) {
-            const prefix = (index ? '\\/' : '');
-            const rx = format === 'colon'
-                ? rxColon
-                : format === 'handlebar'
-                ? rxHandlebar
-                : rxDoubleHandlebar;
 
-            const match = rx.exec(item);
-            if (item === '*') {
-                return prefix + '[\\s\\S]*?';
-            } else if (match) {
-                const modifier = match[2];
-                if (params) params.push(match);
-                if (modifier === '*') return prefix + '([\\s\\S]*?)';
-                if (modifier === '?') return '(?:' + prefix + '([^\\/]+))?';
-                if (!modifier) return prefix + '([^\\/]+)';
-            } else {
-                return prefix + item;
-            }
-/*
-            if (match || item === '*') {
-                const modifier = match ? match[2] : '*';
-                if (params) params.push(match);
-                if (!modifier || modifier === '*') {
-                    return prefix + (modifier ? '([\\s\\S]+?)' : '([^\\/]+)');
+    // determine matching rx
+    const rx = format === 'doubleHandlebar'
+        ? /(?:{{([_$a-z][_$a-z0-9]*)(\*|\?)?}})|(\*)/ig
+        : format === 'handlebar'
+        ? /(?:{([_$a-z][_$a-z0-9]*)(\*|\?)?})|(\*)/ig
+        : /(?::([_$a-z][_$a-z0-9]*)(\*|\?)?)|(\*)/ig;
+
+    const p = exports.rx.param;
+    const w = exports.rx.wildcard;
+
+    let match;
+    let offset = 0;
+    let result = '^';
+    while (match = rx.exec(path)) {
+        result += escapeRxString(path.substring(offset, match.index));
+
+        if (match[3] === '*') {
+            offset = match.index + 1;
+            result += '' + w + '*?';
+        } else {
+            const modifier = match[2] || '';
+            if (params) params.push(match[1]);
+            if (modifier === '*') result += '(' + w + '*?)';
+            if (modifier === '?') {
+                if (result.charAt(result.length - 1) === '/') {
+                    result = result.substr(0, result.length -1) + '(?:\/(' + p + '+?))?';
                 } else {
-                    return '(?:' + prefix + (modifier === '?' ? '([^\\/]+)' : '([\\s\\S]+?)') + ')?';
+                    result += '(?:(' + p + '+?))?';
                 }
-            } else {
-                return prefix + item;
-            }*/
-        })
-        .join('');
-    return new RegExp('^' + str + '$');
+            }
+            if (!modifier) result += '(' + p + '+?)';
+            offset = match.index + match[0].length;
+        }
+    }
+    result += escapeRxString(path.substr(offset)) + '$';
+
+    return new RegExp(result);
 };
+
+exports.rx = {
+    param: '(?:[a-zA-Z0-9\\.\\-_~!$&\'()*+,;=:@]|%[a-fA-F0-9]{2})',
+    wildcard: '(?:[a-zA-Z0-9\\.\\-_~!$&\'()*+,;=:@\\/]|%[a-fA-F0-9]{2})'
+};
+
+function escapeRxString(str) {
+    return str.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+}
