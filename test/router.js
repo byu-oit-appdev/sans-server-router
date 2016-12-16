@@ -130,7 +130,7 @@ describe('router', () => {
         const router = Router();
         router.get('*',
             function(req, res, next) {
-                next(Error('Oops'));
+                next(Error('Oops1'));
             },
             function(req, res) {
                 throw Error('Should not get here');
@@ -139,7 +139,7 @@ describe('router', () => {
 
         const req = Request({ method: 'GET', path: '/' });
         const res = Response(req, function(err) {
-            expect(err.message).to.equal('Oops');
+            expect(err.message).to.equal('Oops1');
             done();
         });
         router.handler(req.method, req.path)(req, res);
@@ -149,13 +149,13 @@ describe('router', () => {
         const router = Router();
         router.get('*',
             function(req, res) {
-                throw Error('Oops');
+                throw Error('Oops2');
             }
         );
 
         const req = Request({ method: 'GET', path: '/' });
         const res = Response(req, function(err) {
-            expect(err.message).to.equal('Oops');
+            expect(err.message).to.equal('Oops2');
             done();
         });
         router.handler(req.method, req.path)(req, res);
@@ -199,6 +199,43 @@ describe('router', () => {
             .handler(req.method, req.path)(req, res);
     });
 
+    it('parser parameters', done => {
+        const num = '' + Math.random();
+        const req = Request({ method: 'GET', path: '/foo/abc/bar/def/ghi' });
+        const res = Response(req, (err, data) => {
+            expect(err).to.equal(null);
+            done();
+        });
+        Router()
+            .get('/foo/:first/bar/:second*', function(req, res, next) {
+                expect(req.params.first).to.equal('abc');
+                expect(req.params.second).to.equal('def/ghi');
+                res.send();
+            })
+            .handler(req.method, req.path)(req, res);
+    });
 
+    it('updates parser parameters', done => {
+        const num = '' + Math.random();
+        const req = Request({ method: 'GET', path: '/foo/abc/bar/def/ghi' });
+        const res = Response(req, (err, data) => {
+            expect(err).to.equal(null);
+            done();
+        });
+        Router()
+            .get('/foo/:first/bar/:second*', function(req, res, next) {
+                expect(req.params.first).to.equal('abc');
+                expect(req.params.second).to.equal('def/ghi');
+                next();
+            })
+            .get('/foo/:first/bar/:second/:third', function(req, res, next) {
+                expect(req.params.first).to.equal('abc');
+                expect(req.params.second).to.equal('def');
+                expect(req.params.third).to.equal('ghi');
+                res.send();
+            })
+            .handler(req.method, req.path)(req, res);
+    });
 
+    // TODO: test case insensitivity
 });

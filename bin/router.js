@@ -98,7 +98,10 @@ Router.prototype.handler = function(method, path) {
         while (routes.length) {
             route = routes.shift();
             params = route.parser(path);
-            if (params) break;
+            if (params) {
+                req.params = params;
+                break;
+            }
         }
 
         // if there is no match then exit
