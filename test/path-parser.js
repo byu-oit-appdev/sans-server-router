@@ -318,9 +318,26 @@ describe('path-parser', () => {
             });
         });
 
+        describe('foo/*', () => {
+            let fn;
+            before(() => fn = parser.parser('foo/*', 'colon'));
+
+            it('foo/bar', () => {
+                expect(fn('foo/bar/baz')).to.deep.equal({});
+            });
+
+            it('foo/bar/baz', () => {
+                expect(fn('foo/bar/baz/abc')).to.deep.equal({});
+            });
+
+            it('foo/baz', () => {
+                expect(fn('foo/bar/be/que/baz')).to.deep.equal({});
+            });
+        });
+
         describe(':lead*/baz', () => {
             let fn;
-            before(() => fn = parser.parser('*', 'colon'));
+            before(() => fn = parser.parser(':lead*/baz', 'colon'));
 
             it('foo/bar/baz', () => {
                 expect(fn('foo/bar/baz')).to.deep.equal({ lead: 'foo/bar' });
@@ -332,6 +349,23 @@ describe('path-parser', () => {
 
             it('foo/bar/be/que/baz', () => {
                 expect(fn('foo/bar/be/que/baz')).to.deep.equal({ lead: 'foo/bar/be/que' });
+            });
+        });
+
+        describe('/foo/:optParam?', () => {
+            let fn;
+            before(() => fn = parser.parser('/foo/:optParam?', 'colon'));
+
+            it('foo/bar/baz', () => {
+                expect(fn('foo/bar/baz')).to.deep.equal(null);
+            });
+
+            it('foo/bar', () => {
+                expect(fn('foo/bar')).to.deep.equal({ optParam: 'bar' });
+            });
+
+            it('foo', () => {
+                expect(fn('foo')).to.deep.equal({});
             });
         });
 
