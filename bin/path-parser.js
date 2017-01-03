@@ -20,12 +20,13 @@
  * Get a function that can be called to provide parameter matches for url paths.
  * @param {string|RegExp} path The matching path descriptor.
  * @param {string} [format]
+ * @param {boolean} [caseSensitive=false]
  * @returns {Function}
  */
-exports.parser = function (path, format) {
+exports.parser = function (path, format, caseSensitive) {
     const params = [];
     const rx = typeof path === 'string'
-        ? exports.createRxFromStringPath(path, format, params)
+        ? exports.createRxFromStringPath(path, format, caseSensitive, params)
         : path;
 
     // validate that rx could be acquired
@@ -60,10 +61,11 @@ exports.parser = function (path, format) {
  * Create a regular expression from a string path definition.
  * @param {string} path
  * @param {string} [format='colon']
+ * @param {boolean} [caseSensitive=false]
  * @param {Array} [params]
  * @returns {RegExp}
  */
-exports.createRxFromStringPath = function (path, format, params) {
+exports.createRxFromStringPath = function (path, format, caseSensitive, params) {
     if (!format) format = 'colon';
     path = path.replace(/^\//, '').replace(/\/$/, '');
 
@@ -103,7 +105,7 @@ exports.createRxFromStringPath = function (path, format, params) {
     }
     result += escapeRxString(path.substr(offset)) + '$';
 
-    return new RegExp(result);
+    return new RegExp(result, caseSensitive ? '' : 'i');
 };
 
 exports.rx = {

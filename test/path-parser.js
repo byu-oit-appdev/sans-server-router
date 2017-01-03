@@ -26,57 +26,52 @@ describe('path-parser', () => {
 
         it('foo', () => {
             const rx = parser.createRxFromStringPath('foo', 'colon');
-            expect(rx.toString()).to.equal('/^foo$/');
+            expect(rx.toString()).to.equal('/^foo$/i');
         });
 
         it('foo/', () => {
-            const rx = parser.createRxFromStringPath('foo/', 'colon');
+            const rx = parser.createRxFromStringPath('foo/', 'colon', true);
             expect(rx.toString()).to.equal('/^foo$/');
         });
 
         it('/foo/', () => {
             const rx = parser.createRxFromStringPath('/foo/', 'colon');
-            expect(rx.toString()).to.equal('/^foo$/');
+            expect(rx.toString()).to.equal('/^foo$/i');
         });
 
         it('/:foo', () => {
-            const params = [];
-            const rx = parser.createRxFromStringPath('/:foo', 'colon', params);
+            const rx = parser.createRxFromStringPath('/:foo', 'colon', true);
             expect(rx.toString()).to.equal('/^(' + p + '+?)$/');
         });
 
         it('/:foo*', () => {
-            const params = [];
-            const rx = parser.createRxFromStringPath('/:foo*', 'colon', params);
+            const rx = parser.createRxFromStringPath('/:foo*', 'colon', true);
             expect(rx.toString()).to.equal('/^(' + w + '*?)$/');
         });
 
         it('/:foo?', () => {
-            const params = [];
-            const rx = parser.createRxFromStringPath('/:foo?', 'colon', params);
+            const rx = parser.createRxFromStringPath('/:foo?', 'colon', true);
             expect(rx.toString()).to.equal('/^(?:(' + p + '+?))?$/');
         });
 
         it('/{foo}', () => {
-            const params = [];
-            const rx = parser.createRxFromStringPath('/{foo}', 'handlebar', params);
+            const rx = parser.createRxFromStringPath('/{foo}', 'handlebar', true);
             expect(rx.toString()).to.equal('/^(' + p + '+?)$/');
         });
 
         it('/{{foo}}', () => {
-            const params = [];
-            const rx = parser.createRxFromStringPath('/{{foo}}', 'doubleHandlebar', params);
+            const rx = parser.createRxFromStringPath('/{{foo}}', 'doubleHandlebar', true);
             expect(rx.toString()).to.equal('/^(' + p + '+?)$/');
         });
 
         it('/:foo/:bar', () => {
             const rx = parser.createRxFromStringPath('/:foo/:bar');
-            expect(rx.toString()).to.equal('/^(' + p + '+?)\\/(' + p + '+?)$/');
+            expect(rx.toString()).to.equal('/^(' + p + '+?)\\/(' + p + '+?)$/i');
         });
 
         it('/:foo,:bar', () => {
             const rx = parser.createRxFromStringPath('/:foo,:bar');
-            expect(rx.toString()).to.equal('/^(' + p + '+?)\\,(' + p + '+?)$/');
+            expect(rx.toString()).to.equal('/^(' + p + '+?)\\,(' + p + '+?)$/i');
         });
 
     });
@@ -367,6 +362,26 @@ describe('path-parser', () => {
             it('foo', () => {
                 expect(fn('foo')).to.deep.equal({});
             });
+        });
+
+        describe('case sensitivity', () => {
+
+            it('case insensitive by default', () => {
+                let fn = parser.parser('/foo/Bar', 'colon');
+                expect(fn('foo/bar')).to.deep.equal({});
+            });
+
+            it('insensitive', () => {
+                let fn = parser.parser('/foo/Bar', 'colon', false);
+                expect(fn('foo/bar')).to.deep.equal({});
+            });
+
+            it('sensitive', () => {
+                let fn = parser.parser('/foo/Bar', 'colon', true);
+                expect(fn('foo/Bar')).to.deep.equal({});
+                expect(fn('foo/bar')).to.deep.equal(null);
+            });
+
         });
 
     });
