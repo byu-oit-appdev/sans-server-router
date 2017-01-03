@@ -236,6 +236,4 @@ describe('router', () => {
             })
             .handler(req.method, req.path)(req, res);
     });
-
-    // TODO: test case insensitivity
 });
