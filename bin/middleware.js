@@ -25,12 +25,14 @@ const Router                = require('./router');
  */
 module.exports = function(sansServer, configuration) {
     const instance = Router(configuration || {});
-    const methods = sansServer.supportedMethods().map(function(v) { return v.toLowerCase(); });
+    const methods = sansServer.supportedMethods()
+        .map(function(v) { return v.toLowerCase(); })
+        .reduce(function(p, c) { p[c] = true; return p; }, {});
 
     // add functions to the sans-server instance
     sansServer.all = instance.all;
     Router.methods.forEach(function(method) {
-        if (methods.indexOf(method) === -1) {
+        if (!methods[method]) {
             sansServer[method] = function() {
                 const err = Error('Method not supported by sans-server instance:' + method);
                 err.code = 'ESSRMET';
