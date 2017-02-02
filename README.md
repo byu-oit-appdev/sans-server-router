@@ -116,7 +116,7 @@ server.use(function(req, res, next) {
 });
 
 // route gets everything but just calls next()
-server.get('*', function(req, res) {
+server.get('*', function(req, res, next) {
     req.foo = 'bar';
     next();
 });
