@@ -2,6 +2,13 @@
 
 A router middleware built for [Sans-Server](https://npmjs.com/packages/sans-server).
 
+## Table of Contents
+
+- [Example](#example)
+- [Defining Routes](#defining-routes)
+- [Paths](#paths)
+- [Router Options](#router-options)
+
 ## Example
 
 ```js
@@ -11,11 +18,16 @@ const SansServer    = require('sans-server');
 // define the server instance
 const server = SansServer();
 
-// add router methods to the server and implement router middleware
-const router = Router();
+// define the router
+const router = Router({
+    caseInsensitive: true,
+    paramFormat: 'colon'
+});
+
+// add the router as middleware
 server.use(router);
 
-// define a route with a required parameter
+// define a route with a parameter
 router.get('/api/content/:contentId', function(req, res) {
     res.send('You selected content: ' + req.params.contentId);
 });
@@ -137,7 +149,7 @@ Static paths have no parameters and must match the incoming request path exactly
 
 ### Parameter Paths
 
-Paths can have parameters defined in three formats: `colon` the default, `handlebar`, or `doubleHandlebar`. The format must be consistent for each router instance and is defined with the [instantiation of the middleware](#middleare-options). Regardless of the format used, the paths are parsed the same.
+Paths can have parameters defined in three formats: `colon` the default, `handlebar`, or `doubleHandlebar`. The format must be consistent for each router instance and is defined with the [instantiation of the middleware](#router-options). Regardless of the format used, the paths are parsed the same.
 
 Once a route is selected, the values for the parameters are stored on an object in the request: `req.params`. This object's properties are the names of the parameters and it's values are taken from the path.
 
@@ -165,6 +177,32 @@ A parameter name followed by a `?` is an optional parameter.
 
 ### Regular Expressions
 
-## Middleware Options
+In place of using strings to define the route path you can instead define a regular expression. If the regular expression matches an incoming request then the matched results will be set into the `req.params` property.
+
+```js
+router.get(/(\d+)/, function(req, res, next) {
+    res.send('Path parameter: ' + req.params[0]);
+});
+```
+
+## Router Options
+
+The router has some options that can be configured that affect the way that routing occurs.
+
+### caseInsensitive
+
+Defaults to `true`.
+
+Setting this option to `false` will require that the letter case (upper or lower) must match the defined path.
+
+### paramFormat
+
+Defaults to `"colon"` but can also be set to `"handlebar"` or `"doubleHandlebar"`.
+
+This option affects how you write your path parameters. For example:
+
+- *colon* - `'/path/:param1'`
+- *handlebar* - `'/path/{param1}'`
+- *doubleHandlebar* - `'/path/{{param1}}'`
 
 TODO: talk about configuarion options and middleware initialization
