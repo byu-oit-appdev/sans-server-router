@@ -19,6 +19,7 @@ const expect                = require('chai').expect;
 const Request               = require('sans-server').Request;
 const Response              = require('sans-server').Response;
 const Router                = require('../bin/router');
+const SansServer            = require('sans-server');
 
 describe('router', () => {
 
@@ -235,5 +236,22 @@ describe('router', () => {
                 res.send();
             })
             .handler(req.method, req.path)(req, res);
+    });
+
+    it('can be used as middleware', done => {
+        const server = SansServer({ supportedMethods: ['GET'] });
+        const router = Router();
+        const num = '' + Math.random();
+
+        router.get('/foo', function(req, res) {
+            res.send(num)
+        });
+
+        server.use(router);
+
+        server.request({ method: 'GET', path: '/foo' }, function(res) {
+            expect(res.body).to.equal(num);
+            done();
+        });
     });
 });

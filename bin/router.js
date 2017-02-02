@@ -30,7 +30,15 @@ module.exports = Router;
  */
 function Router(configuration) {
     const config = schemas.router.normalize(configuration || {});
-    const router = Object.create(Router.prototype);
+
+    // create the router function
+    const router = function(req, res, next) {
+        const handler = Router.handler.call(router, req.method, req.path);
+        handler(req, res, next);
+    };
+    Object.assign(router, Router);
+
+    // create the store
     const routes = {};
     Router.methods.forEach(function(method) {
         routes[method] = [];
@@ -39,6 +47,8 @@ function Router(configuration) {
         config: config,
         routes: routes
     });
+
+    // return the route
     return router;
 }
 
@@ -48,7 +58,7 @@ function Router(configuration) {
  * @param {...function} middleware
  * @returns {Router}
  */
-Router.prototype.all = function(path, middleware) {
+Router.all = function(path, middleware) {
     const args = arguments;
     const router = this;
     Router.methods.forEach(function(key) {
@@ -63,7 +73,7 @@ Router.prototype.all = function(path, middleware) {
  * @param {...function} middleware
  * @returns {Router}
  */
-Router.prototype.delete = function(path, middleware) {
+Router.delete = function(path, middleware) {
     definePath(this, 'delete', path, arguments);
     return this;
 };
@@ -74,7 +84,7 @@ Router.prototype.delete = function(path, middleware) {
  * @param {...function} middleware
  * @returns {Router}
  */
-Router.prototype.get = function(path, middleware) {
+Router.get = function(path, middleware) {
     definePath(this, 'get', path, arguments);
     return this;
 };
@@ -85,10 +95,10 @@ Router.prototype.get = function(path, middleware) {
  * @param {string} path
  * @returns {Function|undefined}
  */
-Router.prototype.handler = function(method, path) {
+Router.handler = function(method, path) {
     const router = getRouter(this);
     method = method.toLowerCase();
-    const routes = this.routes.hasOwnProperty(method) ? this.routes[method].slice(0) : [];
+    const routes = router.routes.hasOwnProperty(method) ? router.routes[method].slice(0) : [];
 
     function nextRoute(req, res, next) {
         let route;
@@ -123,7 +133,7 @@ Router.prototype.handler = function(method, path) {
  * @param {...function} middleware
  * @returns {Router}
  */
-Router.prototype.head = function(path, middleware) {
+Router.head = function(path, middleware) {
     definePath(this, 'head', path, arguments);
     return this;
 };
@@ -134,7 +144,7 @@ Router.prototype.head = function(path, middleware) {
  * @param {...function} middleware
  * @returns {Router}
  */
-Router.prototype.options = function(path, middleware) {
+Router.options = function(path, middleware) {
     definePath(this, 'options', path, arguments);
     return this;
 };
@@ -145,7 +155,7 @@ Router.prototype.options = function(path, middleware) {
  * @param {...function} middleware
  * @returns {Router}
  */
-Router.prototype.patch = function(path, middleware) {
+Router.patch = function(path, middleware) {
     definePath(this, 'patch', path, arguments);
     return this;
 };
@@ -156,7 +166,7 @@ Router.prototype.patch = function(path, middleware) {
  * @param {...function} middleware
  * @returns {Router}
  */
-Router.prototype.post = function(path, middleware) {
+Router.post = function(path, middleware) {
     definePath(this, 'post', path, arguments);
     return this;
 };
@@ -167,7 +177,7 @@ Router.prototype.post = function(path, middleware) {
  * @param {...function} middleware
  * @returns {Router}
  */
-Router.prototype.put = function(path, middleware) {
+Router.put = function(path, middleware) {
     definePath(this, 'put', path, arguments);
     return this;
 };
@@ -176,7 +186,7 @@ Router.prototype.put = function(path, middleware) {
  * Get the routes assigned to the router.
  * @type {Object<string,Array>}
  */
-Object.defineProperty(Router.prototype, 'routes', {
+Object.defineProperty(Router, 'routes', {
     get: function() {
         const router = getRouter(this);
         return router.routes;

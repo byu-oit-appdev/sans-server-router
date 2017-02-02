@@ -5,17 +5,18 @@ A router middleware built for [Sans-Server](https://npmjs.com/packages/sans-serv
 ## Example
 
 ```js
-const router        = require('sans-server-router');
+const Router        = require('sans-server-router');
 const SansServer    = require('sans-server');
 
 // define the server instance
-server = SansServer();
+const server = SansServer();
 
 // add router methods to the server and implement router middleware
-server.use(router(server));
+const router = Router();
+server.use(router);
 
 // define a route with a required parameter
-server.get('/api/content/:contentId', function(req, res) {
+router.get('/api/content/:contentId', function(req, res) {
     res.send('You selected content: ' + req.params.contentId);
 });
 
@@ -25,11 +26,6 @@ server.request({ method: 'GET', path: '/api/content/1234' })
         console.log(res.body);      // "You selected content: 1234"
     });
 ```
-
-This middleware performs two operations:
-
-1. It adds methods to the SansServer instance. Those methods are used to [define routes](#defining-routes).
-2. It evaluates each request and determines whether a [defined route](#defining-routes) should handler the request.
 
 ## Defining Routes
 
@@ -54,9 +50,13 @@ Each of these methods has the same signature. The `get` method is demonstrated h
 **Example: Static Path**
 
 ```js
-const router        = require('sans-server-router');
+const Router        = require('sans-server-router');
 const SansServer    = require('sans-server');
-server.use(router(server));
+
+const router = Router();
+const server = SansServer();
+
+server.use(router));
 
 // define static path for GET method
 server.get('/path', function(req, res, next) {
@@ -67,15 +67,15 @@ server.get('/path', function(req, res, next) {
 **Example: Path with Parameters**
 
 ```js
-server.post('/path/:param1', function(req, res, next) {
+router.post('/path/:param1', function(req, res, next) {
     res.send('You hit the endpoint POST /path/:param1 where param1=' + req.params.param1);
 });
 ```
 
-**Example: Path with Multiple Middlewares**
+**Example: Path with Chained Middlewares**
 
 ```js
-server.put('/path',
+router.put('/path',
     function(req, res, next) {
         next();
     },
@@ -87,36 +87,41 @@ server.put('/path',
 
 **Example: Multiple Path Matches**
 
+Both of these routes will run their associated middleware functions when a request to `GET /path/foo` is made.
+
 ```js
 // because this is defined first /path/foo will go here first, but only /path/foo
-server.get('/path/foo', function(req, res, next) {
+router.get('/path/foo', function(req, res, next) {
     req.isFoo = true;
     next();
 });
 
 // this will match many paths
-server.get('/path/:name', function(req, res, next) {
+router.get('/path/:name', function(req, res, next) {
     res.send('Path ' + req.params.name ' is foo? ' + req.isFoo);
 });
 ```
 
 **Example: Router Declines to Respond**
 
+Because the router is calling middleware functions, the middleware function does not need to provide a response. It can call the `next()` function instead.
+
 ```js
-const router        = require('sans-server-router');
+const Router        = require('sans-server-router');
 const SansServer    = require('sans-server');
 
-server = SansServer();
-server.use(router(server));
+const server = SansServer();
+const router = Router();
+server.use(router);
 
-// because this middleware is added after the router, it won't be called unless
+// because this middleware is added after the router middleware, it won't be called unless
 // the router passes the request through with next()
 server.use(function(req, res, next) {
     res.send(req.foo);  // "bar"
 });
 
 // route gets everything but just calls next()
-server.get('*', function(req, res, next) {
+router.get('*', function(req, res, next) {
     req.foo = 'bar';
     next();
 });

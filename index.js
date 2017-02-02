@@ -15,5 +15,4 @@
  *    limitations under the License.
  **/
 'use strict';
-module.exports = require('./bin/middleware');
-module.exports.Router = require('./bin/router');
+module.exports = require('./bin/router');
