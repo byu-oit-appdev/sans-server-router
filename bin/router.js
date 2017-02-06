@@ -30,16 +30,17 @@ module.exports = Router;
  */
 function Router(configuration) {
     const config = schemas.router.normalize(configuration || {});
+    const routes = {};
 
     // create the router function
     const router = function(req, res, next) {
-        const handler = Router.handler.call(router, req.method, req.path);
-        handler(req, res, next);
+        const method = req.method.toLowerCase();
+        const copy = routes.hasOwnProperty(method) ? routes[method].slice(0) : [];
+        runRoutes(copy, req, res, next);
     };
     Object.assign(router, Router);
 
     // create the store
-    const routes = {};
     Router.methods.forEach(function(method) {
         routes[method] = [];
     });
@@ -87,44 +88,6 @@ Router.delete = function(path, middleware) {
 Router.get = function(path, middleware) {
     definePath(this, 'get', path, arguments);
     return this;
-};
-
-/**
- * Get the function that should be called for the specific method and URL.
- * @param {string} method
- * @param {string} path
- * @returns {Function|undefined}
- */
-Router.handler = function(method, path) {
-    const router = getRouter(this);
-    method = method.toLowerCase();
-    const routes = router.routes.hasOwnProperty(method) ? router.routes[method].slice(0) : [];
-
-    function nextRoute(req, res, next) {
-        let route;
-        let params;
-
-        // find the next route that matches the path
-        while (routes.length) {
-            route = routes.shift();
-            params = route.parser(path);
-            if (params) {
-                req.params = params;
-                break;
-            }
-        }
-
-        // if there is no match then exit
-        if (!params) return next();
-
-        // execute the route
-        route.runner(req, res, function(err) {
-            if (err) return next(err);
-            nextRoute(req, res, next);
-        });
-    }
-
-    return nextRoute;
 };
 
 /**
@@ -228,6 +191,30 @@ function getRouter(router) {
     const err = Error('Invalid context. This must be a Router instance. Received: ' + router);
     err.code = 'ESSRCTX';
     throw err;
+}
+
+function runRoutes(routes, req, res, next) {
+    let route;
+    let params;
+
+    // find the next route that matches the path
+    while (routes.length) {
+        route = routes.shift();
+        params = route.parser(req.path);
+        if (params) {
+            req.params = params;
+            break;
+        }
+    }
+
+    // if there is no match then exit
+    if (!params) return next();
+
+    // execute the route
+    route.runner(req, res, function(err) {
+        if (err) return next(err);
+        runRoutes(routes, req, res, next);
+    });
 }
 
 function runMiddleware(context, chain, req, res, next) {

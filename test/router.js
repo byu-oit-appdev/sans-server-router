@@ -31,7 +31,7 @@ describe('router', () => {
             });
         const req = Request({ method: 'PUT', path: '/' });
         const res = Response(req);
-        router.handler(req.method, req.path)(req, res);
+        router(req, res);
     });
 
     it('DELETE', done => {
@@ -42,7 +42,7 @@ describe('router', () => {
 
         const req = Request({ method: 'DELETE', path: '/' });
         const res = Response(req);
-        router.handler(req.method, req.path)(req, res);
+        router(req, res);
     });
 
     it('GET', done => {
@@ -53,7 +53,7 @@ describe('router', () => {
 
         const req = Request({ method: 'GET', path: '/' });
         const res = Response(req);
-        router.handler(req.method, req.path)(req, res);
+        router(req, res);
     });
 
     it('HEAD', done => {
@@ -64,7 +64,7 @@ describe('router', () => {
 
         const req = Request({ method: 'HEAD', path: '/' });
         const res = Response(req);
-        router.handler(req.method, req.path)(req, res);
+        router(req, res);
     });
 
     it('OPTIONS', done => {
@@ -75,7 +75,7 @@ describe('router', () => {
 
         const req = Request({ method: 'OPTIONS', path: '/' });
         const res = Response(req);
-        router.handler(req.method, req.path)(req, res);
+        router(req, res);
     });
 
     it('PATCH', done => {
@@ -86,7 +86,7 @@ describe('router', () => {
 
         const req = Request({ method: 'PATCH', path: '/' });
         const res = Response(req);
-        router.handler(req.method, req.path)(req, res);
+        router(req, res);
     });
 
     it('POST', done => {
@@ -97,7 +97,7 @@ describe('router', () => {
 
         const req = Request({ method: 'POST', path: '/' });
         const res = Response(req);
-        router.handler(req.method, req.path)(req, res);
+        router(req, res);
     });
 
     it('PUT', done => {
@@ -108,7 +108,7 @@ describe('router', () => {
 
         const req = Request({ method: 'PUT', path: '/' });
         const res = Response(req);
-        router.handler(req.method, req.path)(req, res);
+        router(req, res);
     });
 
     it('chained', done => {
@@ -124,7 +124,7 @@ describe('router', () => {
 
         const req = Request({ method: 'GET', path: '/' });
         const res = Response(req);
-        router.handler(req.method, req.path)(req, res);
+        router(req, res);
     });
 
     it('chained next error', done => {
@@ -143,7 +143,7 @@ describe('router', () => {
             expect(err.message).to.equal('Oops1');
             done();
         });
-        router.handler(req.method, req.path)(req, res);
+        router(req, res);
     });
 
     it('throw error', done => {
@@ -159,17 +159,7 @@ describe('router', () => {
             expect(err.message).to.equal('Oops2');
             done();
         });
-        router.handler(req.method, req.path)(req, res);
-    });
-
-    it('bad context', () => {
-        const router = Router();
-        try {
-            router.handler.call({}, 'GET', '/');
-            throw Error('Should not get here');
-        } catch (e) {
-            expect(e.code).to.equal('ESSRCTX');
-        }
+        router(req, res);
     });
 
     it('invalid handler', () => {
@@ -197,7 +187,7 @@ describe('router', () => {
                 expect(req.foo).to.equal(num);
                 res.send(num);
             })
-            .handler(req.method, req.path)(req, res);
+            (req, res);
     });
 
     it('parser parameters', done => {
@@ -213,7 +203,7 @@ describe('router', () => {
                 expect(req.params.second).to.equal('def/ghi');
                 res.send();
             })
-            .handler(req.method, req.path)(req, res);
+            (req, res);
     });
 
     it('updates parser parameters', done => {
@@ -235,7 +225,7 @@ describe('router', () => {
                 expect(req.params.third).to.equal('ghi');
                 res.send();
             })
-            .handler(req.method, req.path)(req, res);
+            (req, res);
     });
 
     it('can be used as middleware', done => {
