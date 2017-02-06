@@ -42,7 +42,8 @@ exports.parser = function (path, format, caseSensitive) {
      * @returns {Object}
      */
     return function(urlPath) {
-        const match = rx.exec(urlPath);
+        const subPath = urlPath.replace(/^\//, '');
+        const match = rx.exec(subPath);
         if (!match) return null;
 
         if (path === rx) {
