@@ -15,16 +15,20 @@
  *    limitations under the License.
  **/
 'use strict';
-const schemata              = require('object-schemata');
+const Typed                 = require('fully-typed');
 
-exports.router = schemata({
-    caseInsensitive: {
-        defaultValue: true,
-        transform: function(v) { return !!v }
-    },
-    paramFormat: {
-        help: 'Must be one of: colon, handlebar, doubleHandlebar',
-        defaultValue: 'colon',
-        validate: function(v) { return ['colon', 'handlebar', 'doubleHandlebar'].indexOf(v) !== -1 }
+exports.router = Typed({
+    type: Object,
+    allowNull: false,
+    properties: {
+        caseInsensitive: {
+            type: Boolean,
+            default: true
+        },
+        paramFormat: {
+            type: String,
+            default: 'colon',
+            enum: ['colon', 'handlebar', 'doubleHandlebar']
+        }
     }
 });

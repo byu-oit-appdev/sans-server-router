@@ -7,7 +7,7 @@
     "test": "test"
   },
   "dependencies": {
-    "object-schemata": "^1.0.8"
+    "fully-typed": "^1.0.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
