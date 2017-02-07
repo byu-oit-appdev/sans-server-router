@@ -34,14 +34,16 @@ function Router(configuration) {
 
     // create the router function
     const router = function(req, res, next) {
+        const server = this;
         const method = req.method.toLowerCase();
-        let hasPathMatch = false;
         let offset = 0;
         let params;
+        let ranRoute = false;
         let route;
         runner();
 
         function runner() {
+            let hasPathMatch = false;
             let match = false;
 
             // find the next route that matches the path
@@ -55,17 +57,32 @@ function Router(configuration) {
                         req.params = params;
                         match = true;
                         break;
+                    } else {
+                         server.log('method-mismatch', route.method.toUpperCase() + ' ' + route.path, route);
                     }
                 }
             }
 
             // if there is no match then exit
             if (!match) {
-                if (config.passThrough) return next();
-                return res.sendStatus(hasPathMatch ? 405 : 404);
+                if (config.passThrough) {
+                    if (ranRoute) server.log('non-terminal', 'Executed routes did not send response.');
+                    server.log('next', 'Passing request to next middleware');
+                    next();
+                } else if (ranRoute) {
+                    server.log('non-terminal', 'Executed routes did not send response. Send 404.');
+                    res.sendStatus(404);
+                } else {
+                    const code = hasPathMatch ? 405 : 404;
+                    server.log('not-found', 'No matching route found. Send ' + code + '.');
+                    res.sendStatus(code);
+                }
+                return;
             }
 
             // execute the route
+            server.log('execute-route', route.method.toUpperCase() + ' ' + route.path, route);
+            ranRoute = true;
             route.runner(req, res, function(err) {
                 if (err) return next(err);
                 runner();
@@ -195,7 +212,12 @@ function definePath(context, method, path, args) {
     const router = getRouter(context);
     const parser = pathParser.parser(path, router.config.paramFormat);
     const runner = getMiddlewareRunner(args);
-    router.routes.push({ method: method, parser: parser, runner: runner });
+    router.routes.push({
+        method: method,
+        parser: parser,
+        path: path,
+        runner: runner
+    });
 }
 
 function getMiddlewareRunner(args) {
