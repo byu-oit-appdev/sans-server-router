@@ -29,6 +29,10 @@ exports.router = Typed({
             type: String,
             default: 'colon',
             enum: ['colon', 'handlebar', 'doubleHandlebar']
+        },
+        passThrough: {
+            type: Boolean,
+            default: false
         }
     }
 });

@@ -30,20 +30,51 @@ module.exports = Router;
  */
 function Router(configuration) {
     const config = schemas.router.normalize(configuration || {});
-    const routes = {};
+    const routes = [];
 
     // create the router function
     const router = function(req, res, next) {
         const method = req.method.toLowerCase();
-        const copy = routes.hasOwnProperty(method) ? routes[method].slice(0) : [];
-        runRoutes(copy, req, res, next);
+        let hasPathMatch = false;
+        let offset = 0;
+        let params;
+        let route;
+        runner();
+
+        function runner() {
+            let match = false;
+
+            // find the next route that matches the path
+            for (let i = offset; i < routes.length; i++) {
+                offset = i + 1;
+                route = routes[i];
+                params = route.parser(req.path);
+                if (params) {
+                    hasPathMatch = true;
+                    if (route.method === method || route.method === 'all') {
+                        req.params = params;
+                        match = true;
+                        break;
+                    }
+                }
+            }
+
+            // if there is no match then exit
+            if (!match) {
+                if (config.passThrough) return next();
+                return res.sendStatus(hasPathMatch ? 405 : 404);
+            }
+
+            // execute the route
+            route.runner(req, res, function(err) {
+                if (err) return next(err);
+                runner();
+            });
+        }
     };
     Object.assign(router, Router);
 
     // create the store
-    Router.methods.forEach(function(method) {
-        routes[method] = [];
-    });
     map.set(router, {
         config: config,
         routes: routes
@@ -62,9 +93,7 @@ function Router(configuration) {
 Router.all = function(path, middleware) {
     const args = arguments;
     const router = this;
-    Router.methods.forEach(function(key) {
-        if (router[key]) router[key].apply(router, args);
-    });
+    definePath(this, 'all', path, args);
     return this;
 };
 
@@ -166,7 +195,7 @@ function definePath(context, method, path, args) {
     const router = getRouter(context);
     const parser = pathParser.parser(path, router.config.paramFormat);
     const runner = getMiddlewareRunner(args);
-    router.routes[method].push({ parser: parser, runner: runner });
+    router.routes.push({ method: method, parser: parser, runner: runner });
 }
 
 function getMiddlewareRunner(args) {
@@ -191,30 +220,6 @@ function getRouter(router) {
     const err = Error('Invalid context. This must be a Router instance. Received: ' + router);
     err.code = 'ESSRCTX';
     throw err;
-}
-
-function runRoutes(routes, req, res, next) {
-    let route;
-    let params;
-
-    // find the next route that matches the path
-    while (routes.length) {
-        route = routes.shift();
-        params = route.parser(req.path);
-        if (params) {
-            req.params = params;
-            break;
-        }
-    }
-
-    // if there is no match then exit
-    if (!params) return next();
-
-    // execute the route
-    route.runner(req, res, function(err) {
-        if (err) return next(err);
-        runRoutes(routes, req, res, next);
-    });
 }
 
 function runMiddleware(context, chain, req, res, next) {

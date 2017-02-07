@@ -30,7 +30,7 @@ describe('router', () => {
                 done();
             });
         const req = Request({ method: 'PUT', path: '/' });
-        const res = Response(req);
+        const res = Response(req, noop);
         router(req, res);
     });
 
@@ -41,7 +41,7 @@ describe('router', () => {
         });
 
         const req = Request({ method: 'DELETE', path: '/' });
-        const res = Response(req);
+        const res = Response(req, noop);
         router(req, res);
     });
 
@@ -52,7 +52,7 @@ describe('router', () => {
         });
 
         const req = Request({ method: 'GET', path: '/' });
-        const res = Response(req);
+        const res = Response(req, noop);
         router(req, res);
     });
 
@@ -63,7 +63,7 @@ describe('router', () => {
         });
 
         const req = Request({ method: 'HEAD', path: '/' });
-        const res = Response(req);
+        const res = Response(req, noop);
         router(req, res);
     });
 
@@ -74,7 +74,7 @@ describe('router', () => {
         });
 
         const req = Request({ method: 'OPTIONS', path: '/' });
-        const res = Response(req);
+        const res = Response(req, noop);
         router(req, res);
     });
 
@@ -85,7 +85,7 @@ describe('router', () => {
         });
 
         const req = Request({ method: 'PATCH', path: '/' });
-        const res = Response(req);
+        const res = Response(req, noop);
         router(req, res);
     });
 
@@ -96,7 +96,7 @@ describe('router', () => {
         });
 
         const req = Request({ method: 'POST', path: '/' });
-        const res = Response(req);
+        const res = Response(req, noop);
         router(req, res);
     });
 
@@ -107,7 +107,7 @@ describe('router', () => {
         });
 
         const req = Request({ method: 'PUT', path: '/' });
-        const res = Response(req);
+        const res = Response(req, noop);
         router(req, res);
     });
 
@@ -123,7 +123,7 @@ describe('router', () => {
         );
 
         const req = Request({ method: 'GET', path: '/' });
-        const res = Response(req);
+        const res = Response(req, noop);
         router(req, res);
     });
 
@@ -244,4 +244,34 @@ describe('router', () => {
             done();
         });
     });
+
+    it('can send a 404', () => {
+        const server = SansServer();
+        const router = Router();
+
+        server.use(router);
+
+        return server.request({ method: 'GET', path: '/foo' })
+            .then(function(res) {
+                expect(res.statusCode).to.equal(404);
+            });
+    });
+
+    it('can send a 405', () => {
+        const server = SansServer();
+        const router = Router();
+
+        router.get('/foo', function(req, res) {
+            res.send('ok')
+        });
+
+        server.use(router);
+
+        return server.request({ method: 'POST', path: '/foo' })
+            .then(function(res) {
+                expect(res.statusCode).to.equal(405);
+            });
+    });
 });
+
+function noop() {}
