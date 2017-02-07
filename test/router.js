@@ -23,143 +23,133 @@ const SansServer            = require('sans-server');
 
 describe('router', () => {
 
-    it('all', done => {
+    it('all', () => {
+        const server = SansServer();
         const router = Router()
             .all('*', function(req, res) {
                 expect(req.method).to.equal('PUT');
-                done();
+                res.send();
             });
-        const req = Request({ method: 'PUT', path: '/' });
-        const res = Response(req, noop);
-        router(req, res);
+        server.use(router);
+        return server.request({ method: 'PUT', path: '/' })
     });
 
-    it('DELETE', done => {
-        const router = Router();
-        router.delete('*', function(req, res) {
-            done();
-        });
-
-        const req = Request({ method: 'DELETE', path: '/' });
-        const res = Response(req, noop);
-        router(req, res);
+    it('DELETE', () => {
+        const server = SansServer();
+        const router = Router()
+            .delete('*', function(req, res) {
+                res.send();
+            });
+        server.use(router);
+        return server.request({ method: 'DELETE', path: '/' })
     });
 
-    it('GET', done => {
-        const router = Router();
-        router.get('*', function(req, res) {
-            done();
-        });
-
-        const req = Request({ method: 'GET', path: '/' });
-        const res = Response(req, noop);
-        router(req, res);
+    it('GET', () => {
+        const server = SansServer();
+        const router = Router()
+            .get('*', function(req, res) {
+                res.send();
+            });
+        server.use(router);
+        return server.request({ method: 'GET', path: '/' });
     });
 
-    it('HEAD', done => {
-        const router = Router();
-        router.head('*', function(req, res) {
-            done();
-        });
-
-        const req = Request({ method: 'HEAD', path: '/' });
-        const res = Response(req, noop);
-        router(req, res);
+    it('HEAD', () => {
+        const server = SansServer();
+        const router = Router()
+            .head('*', function(req, res) {
+                res.send();
+            });
+        server.use(router);
+        return server.request({ method: 'HEAD', path: '/' });
     });
 
-    it('OPTIONS', done => {
-        const router = Router();
-        router.options('*', function(req, res) {
-            done();
-        });
-
-        const req = Request({ method: 'OPTIONS', path: '/' });
-        const res = Response(req, noop);
-        router(req, res);
+    it('OPTIONS', () => {
+        const server = SansServer();
+        const router = Router()
+            .options('*', function(req, res) {
+                res.send();
+            });
+        server.use(router);
+        return server.request({ method: 'OPTIONS', path: '/' });
     });
 
-    it('PATCH', done => {
-        const router = Router();
-        router.patch('*', function(req, res) {
-            done();
-        });
-
-        const req = Request({ method: 'PATCH', path: '/' });
-        const res = Response(req, noop);
-        router(req, res);
+    it('PATCH', () => {
+        const server = SansServer();
+        const router = Router()
+            .patch('*', function(req, res) {
+                res.send();
+            });
+        server.use(router);
+        return server.request({ method: 'PATCH', path: '/' });
     });
 
-    it('POST', done => {
-        const router = Router();
-        router.post('*', function(req, res) {
-            done();
-        });
-
-        const req = Request({ method: 'POST', path: '/' });
-        const res = Response(req, noop);
-        router(req, res);
+    it('POST', () => {
+        const server = SansServer();
+        const router = Router()
+            .post('*', function(req, res) {
+                res.send();
+            });
+        server.use(router);
+        return server.request({ method: 'POST', path: '/' });
     });
 
-    it('PUT', done => {
-        const router = Router();
-        router.put('*', function(req, res) {
-            done();
-        });
-
-        const req = Request({ method: 'PUT', path: '/' });
-        const res = Response(req, noop);
-        router(req, res);
+    it('PUT', () => {
+        const server = SansServer();
+        const router = Router()
+            .put('*', function(req, res) {
+                res.send();
+            });
+        server.use(router);
+        return server.request({ method: 'PUT', path: '/' });
     });
 
-    it('chained', done => {
-        const router = Router();
-        router.get('*',
-            function(req, res, next) {
-                next();
-            },
-            function(req, res) {
-                done();
-            }
-        );
-
-        const req = Request({ method: 'GET', path: '/' });
-        const res = Response(req, noop);
-        router(req, res);
+    it('chained', () => {
+        const server = SansServer();
+        const router = Router()
+            .get('*',
+                function(req, res, next) {
+                    next();
+                },
+                function(req, res) {
+                    res.send();
+                }
+            );
+        server.use(router);
+        return server.request({ method: 'GET', path: '/' });
     });
 
-    it('chained next error', done => {
-        const router = Router();
-        router.get('*',
-            function(req, res, next) {
-                next(Error('Oops1'));
-            },
-            function(req, res) {
-                throw Error('Should not get here');
-            }
-        );
-
-        const req = Request({ method: 'GET', path: '/' });
-        const res = Response(req, function(err) {
-            expect(err.message).to.equal('Oops1');
-            done();
-        });
-        router(req, res);
+    it('chained next error', () => {
+        const server = SansServer();
+        const router = Router()
+            .get('*',
+                function(req, res, next) {
+                    next(Error('Oops1'));
+                },
+                function(req, res) {
+                    throw Error('Should not get here');
+                }
+            );
+        server.use(router);
+        return server.request({ method: 'GET', path: '/' })
+            .then(function(res) {
+                expect(res.error.message).to.equal('Oops1');
+            });
     });
 
-    it('throw error', done => {
-        const router = Router();
-        router.get('*',
-            function(req, res) {
-                throw Error('Oops2');
-            }
-        );
-
-        const req = Request({ method: 'GET', path: '/' });
-        const res = Response(req, function(err) {
-            expect(err.message).to.equal('Oops2');
-            done();
-        });
-        router(req, res);
+    it('throw error', () => {
+        const server = SansServer();
+        const router = Router()
+            .get('*',
+                function(req, res) {
+                    throw Error('Oops2');
+                }
+            );
+        server.use(router);
+        return server.request({ method: 'GET', path: '/' })
+            .then(res => {
+                expect(res.error.message).to.equal('Oops2');
+            });
     });
 
     it('invalid handler', () => {
@@ -171,14 +161,11 @@ describe('router', () => {
         }
     });
 
-    it('non terminal router', done => {
+    it('chained routes', () => {
         const num = '' + Math.random();
-        const req = Request({ method: 'GET', path: '/' });
-        const res = Response(req, (err, data) => {
-            expect(data.body).to.equal(num);
-            done();
-        });
-        Router()
+        const server = SansServer();
+
+        const router = Router()
             .get('*', function(req, res, next) {
                 req.foo = num;
                 next();
@@ -186,34 +173,56 @@ describe('router', () => {
             .get('*', function(req, res, next) {
                 expect(req.foo).to.equal(num);
                 res.send(num);
-            })
-            (req, res);
+            });
+        server.use(router);
+
+        return server.request({ method: 'GET', path: '/' })
+            .then(res => {
+                expect(res.body).to.equal(num);
+            });
     });
 
-    it('parser parameters', done => {
+    it('non terminal router', () => {
         const num = '' + Math.random();
-        const req = Request({ method: 'GET', path: '/foo/abc/bar/def/ghi' });
-        const res = Response(req, (err, data) => {
-            expect(err).to.equal(null);
-            done();
-        });
-        Router()
+        const server = SansServer();
+
+        const router = Router()
+            .get('/foo/bar', function(req, res, next) {
+                req.foo = num;
+                next();
+            })
+            .get('/foo/:p', function(req, res, next) {
+                expect(req.params.p).to.equal('bar');
+                expect(req.foo).to.equal(num);
+                next();
+            });
+        server.use(router);
+
+        return server.request({ method: 'GET', path: '/foo/bar' })
+            .then(res => {
+                expect(res.statusCode).to.equal(404);
+            });
+    });
+
+    it('parser parameters', () => {
+        const num = '' + Math.random();
+        const server = SansServer();
+        const router = Router()
             .get('/foo/:first/bar/:second*', function(req, res, next) {
                 expect(req.params.first).to.equal('abc');
                 expect(req.params.second).to.equal('def/ghi');
                 res.send();
-            })
-            (req, res);
+            });
+        server.use(router);
+        return server.request({ method: 'GET', path: '/foo/abc/bar/def/ghi' })
+            .then(res => {
+                expect(!res.error).to.be.true;
+            });
     });
 
-    it('updates parser parameters', done => {
-        const num = '' + Math.random();
-        const req = Request({ method: 'GET', path: '/foo/abc/bar/def/ghi' });
-        const res = Response(req, (err, data) => {
-            expect(err).to.equal(null);
-            done();
-        });
-        Router()
+    it('updates parser parameters', () => {
+        const server = SansServer();
+        const router = Router()
             .get('/foo/:first/bar/:second*', function(req, res, next) {
                 expect(req.params.first).to.equal('abc');
                 expect(req.params.second).to.equal('def/ghi');
@@ -224,8 +233,12 @@ describe('router', () => {
                 expect(req.params.second).to.equal('def');
                 expect(req.params.third).to.equal('ghi');
                 res.send();
-            })
-            (req, res);
+            });
+        server.use(router);
+        return server.request({ method: 'GET', path: '/foo/abc/bar/def/ghi' })
+            .then(res => {
+                expect(!res.error).to.be.true;
+            });
     });
 
     it('can be used as middleware', done => {
@@ -248,11 +261,9 @@ describe('router', () => {
     it('can send a 404', () => {
         const server = SansServer();
         const router = Router();
-
         server.use(router);
-
-        return server.request({ method: 'GET', path: '/foo' })
-            .then(function(res) {
+        return server.request({ method: 'GET', path: '/' })
+            .then(res => {
                 expect(res.statusCode).to.equal(404);
             });
     });
