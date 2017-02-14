@@ -83,7 +83,7 @@ function Router(configuration) {
             // execute the route
             server.log('execute-route', route.method.toUpperCase() + ' ' + route.path, route);
             ranRoute = true;
-            route.runner(req, res, function(err) {
+            route.runner.call(server, req, res, function(err) {
                 if (err) return next(err);
                 runner();
             });
