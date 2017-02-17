@@ -5,9 +5,9 @@ A router middleware built for [Sans-Server](https://npmjs.com/packages/sans-serv
 ## Table of Contents
 
 - [Example](#example)
+- [Router Options](#router-options)
 - [Defining Routes](#defining-routes)
 - [Paths](#paths)
-- [Router Options](#router-options)
 
 ## Example
 
@@ -21,7 +21,8 @@ const server = SansServer();
 // define the router
 const router = Router({
     caseInsensitive: true,
-    paramFormat: 'colon'
+    paramFormat: 'colon',
+    passThrough: false
 });
 
 // add the router as middleware
@@ -38,6 +39,32 @@ server.request({ method: 'GET', path: '/api/content/1234' })
         console.log(res.body);      // "You selected content: 1234"
     });
 ```
+
+## Router Options
+
+The router has some options that can be configured that affect the way that routing occurs.
+
+### caseInsensitive
+
+Defaults to `true`.
+
+Setting this option to `false` will require that the letter case (upper or lower) must match the defined path.
+
+### paramFormat
+
+Defaults to `"colon"` but can also be set to `"handlebar"` or `"doubleHandlebar"`.
+
+This option affects how you write your path parameters. For example:
+
+- *colon* - `'/path/:param1'`
+- *handlebar* - `'/path/{param1}'`
+- *doubleHandlebar* - `'/path/{{param1}}'`
+
+### passThrough
+
+Defaults to `false`.
+
+Setting this value to `true` will allow request to continue to additional middleware if the defined routes did not handle the request.
 
 ## Defining Routes
 
@@ -184,25 +211,3 @@ router.get(/(\d+)/, function(req, res, next) {
     res.send('Path parameter: ' + req.params[0]);
 });
 ```
-
-## Router Options
-
-The router has some options that can be configured that affect the way that routing occurs.
-
-### caseInsensitive
-
-Defaults to `true`.
-
-Setting this option to `false` will require that the letter case (upper or lower) must match the defined path.
-
-### paramFormat
-
-Defaults to `"colon"` but can also be set to `"handlebar"` or `"doubleHandlebar"`.
-
-This option affects how you write your path parameters. For example:
-
-- *colon* - `'/path/:param1'`
-- *handlebar* - `'/path/{param1}'`
-- *doubleHandlebar* - `'/path/{{param1}}'`
-
-TODO: talk about configuarion options and middleware initialization
