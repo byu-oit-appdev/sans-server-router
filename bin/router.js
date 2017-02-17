@@ -210,7 +210,7 @@ Router.methods = ['delete', 'get', 'head', 'options', 'patch', 'post', 'put'];
 
 function definePath(context, method, path, args) {
     const router = getRouter(context);
-    const parser = pathParser.parser(path, router.config.paramFormat);
+    const parser = pathParser.parser(path, router.config.paramFormat, !router.config.caseInsensitive);
     const runner = getMiddlewareRunner(args);
     router.routes.push({
         method: method,
