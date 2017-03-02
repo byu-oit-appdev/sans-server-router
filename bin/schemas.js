@@ -32,7 +32,7 @@ exports.router = Typed({
         },
         passThrough: {
             type: Boolean,
-            default: false
+            default: true
         }
     }
 });

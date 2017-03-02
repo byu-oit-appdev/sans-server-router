@@ -62,9 +62,9 @@ This option affects how you write your path parameters. For example:
 
 ### passThrough
 
-Defaults to `false`.
+Defaults to `true`.
 
-Setting this value to `true` will allow request to continue to additional middleware if the defined routes did not handle the request.
+Setting this value to `true` will allow request to continue to additional middleware if the defined routes did not handle the request. Setting to `false` will send a 404.
 
 ## Defining Routes
 
