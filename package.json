@@ -1,6 +1,6 @@
 {
   "name": "sans-server-router",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "An express like router for sans-server.",
   "main": "index.js",
   "directories": {
