@@ -60,12 +60,6 @@ This option affects how you write your path parameters. For example:
 - *handlebar* - `'/path/{param1}'`
 - *doubleHandlebar* - `'/path/{{param1}}'`
 
-### passThrough
-
-Defaults to `true`.
-
-Setting this value to `true` will allow request to continue to additional middleware if the defined routes did not handle the request. Setting to `false` will send a 404.
-
 ## Defining Routes
 
 Routes can be defined for the following methods: `delete`, `get`, `head`, `options`, `patch`, `post`, `put`. There is also a method `all` that allows you to define a route for each of those methods.

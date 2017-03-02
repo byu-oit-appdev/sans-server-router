@@ -65,18 +65,13 @@ function Router(configuration) {
 
             // if there is no match then exit
             if (!match) {
-                if (config.passThrough) {
-                    if (ranRoute) server.log('non-terminal', 'Executed routes did not send response.');
-                    server.log('next', 'Passing request to next middleware');
-                    next();
-                } else if (ranRoute) {
-                    server.log('non-terminal', 'Executed routes did not send response. Send 404.');
-                    res.sendStatus(404);
-                } else {
-                    const code = hasPathMatch ? 405 : 404;
-                    server.log('not-found', 'No matching route found. Send ' + code + '.');
-                    res.sendStatus(code);
+                if (hasPathMatch) {
+                    res.body('Method Not Supported');
+                    res.status(405);
                 }
+                if (ranRoute) server.log('non-terminal', 'Executed routes did not send response.');
+                server.log('next', 'Passing request to next middleware');
+                next();
                 return;
             }
 
