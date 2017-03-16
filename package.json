@@ -13,11 +13,12 @@
     "chai": "^3.5.0",
     "mocha": "^3.2.0",
     "nyc": "^10.0.0",
-    "sans-server": "github:byu-oit-appdev/sans-server"
+    "sans-server": "*"
   },
   "scripts": {
-    "coverage": "nyc mocha",
-    "test": "mocha"
+    "test": "mocha test/*.js",
+    "coverage": "nyc mocha test/*.js",
+    "coverage:report": "nyc mocha test/*.js && nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
