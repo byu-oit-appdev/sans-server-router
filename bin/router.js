@@ -16,7 +16,6 @@
  **/
 'use strict';
 const pathParser            = require('./path-parser');
-const schemas               = require('./schemas');
 
 const map = new WeakMap();
 
@@ -29,7 +28,7 @@ module.exports = Router;
  * @constructor
  */
 function Router(configuration) {
-    const config = schemas.router.normalize(configuration || {});
+    const config = getConfig(configuration);
     const routes = [];
 
     // create the router function
@@ -103,9 +102,7 @@ function Router(configuration) {
  * @returns {Router}
  */
 Router.all = function(path, middleware) {
-    const args = arguments;
-    const router = this;
-    definePath(this, 'all', path, args);
+    definePath(this, 'all', path, arguments);
     return this;
 };
 
@@ -213,6 +210,19 @@ function definePath(context, method, path, args) {
         path: path,
         runner: runner
     });
+}
+
+function getConfig(configuration) {
+    if (!configuration) configuration = {};
+    const config = {
+        caseInsensitive: configuration.hasOwnProperty('caseInsensitive') ? !!configuration.caseInsensitive : true,
+        paramFormat: configuration.paramFormat || 'colon'
+    };
+    if (config.paramFormat !== 'colon' && config.paramFormat !== 'handlebar' && config.paramFormat !== 'doubleHandlebar') {
+        throw Error('Invalid configuration value for paramFormat. ' +
+            'Expected one of: colon, handlebar, doubleHandlebar. Received: ' + config.paramFormat);
+    }
+    return config;
 }
 
 function getMiddlewareRunner(args) {

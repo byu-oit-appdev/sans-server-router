@@ -6,9 +6,7 @@
   "directories": {
     "test": "test"
   },
-  "dependencies": {
-    "fully-typed": "^1.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^3.2.0",
@@ -22,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/byu-oit-appdev/sans-server-router.git"
+    "url": "git+https://github.com/byu-oit/sans-server-router.git"
   },
   "keywords": [
     "sans-server",
@@ -33,7 +31,7 @@
   "author": "James Speirs <james.speirs@gmail.com>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/byu-oit-appdev/sans-server-router/issues"
+    "url": "https://github.com/byu-oit/sans-server-router/issues"
   },
-  "homepage": "https://github.com/byu-oit-appdev/sans-server-router#readme"
+  "homepage": "https://github.com/byu-oit/sans-server-router#readme"
 }
