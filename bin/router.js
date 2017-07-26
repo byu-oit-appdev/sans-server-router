@@ -84,6 +84,7 @@ function Router(configuration) {
         }
     };
     Object.assign(router, Router);
+    Object.defineProperty(router, 'routes', { get: getRoutes });
 
     // create the store
     map.set(router, {
@@ -188,10 +189,7 @@ Router.put = function(path, middleware) {
  * @type {Object<string,Array>}
  */
 Object.defineProperty(Router, 'routes', {
-    get: function() {
-        const router = getRouter(this);
-        return router.routes;
-    }
+    get: getRoutes
 });
 
 /**
@@ -247,6 +245,11 @@ function getRouter(router) {
     const err = Error('Invalid context. This must be a Router instance. Received: ' + router);
     err.code = 'ESSRCTX';
     throw err;
+}
+
+function getRoutes() {
+    const router = getRouter(this);
+    return router.routes;
 }
 
 function runMiddleware(context, chain, req, res, next) {
