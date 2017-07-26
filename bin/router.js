@@ -57,7 +57,7 @@ function Router(configuration) {
                         match = true;
                         break;
                     } else {
-                         server.log('method-mismatch', route.method.toUpperCase() + ' ' + route.path, route);
+                        server.log('method-mismatch', route.method.toUpperCase() + ' ' + route.path, route);
                     }
                 }
             }
