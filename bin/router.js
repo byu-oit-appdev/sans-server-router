@@ -17,198 +17,188 @@
 'use strict';
 const pathParser            = require('./path-parser');
 
-const map = new WeakMap();
-
-module.exports = Router;
+const methods = ['delete', 'get', 'head', 'options', 'patch', 'post', 'put'];
 
 /**
- * Create a router instance.
- * @param {object} [configuration]
+ *
+ * @param configuration
  * @returns {Router}
- * @constructor
  */
-function Router(configuration) {
+module.exports = function(configuration) {
     const config = getConfig(configuration);
     const routes = [];
 
-    // create the router function
-    const router = function(req, res, next) {
-        const server = this;
-        const method = req.method.toLowerCase();
-        let offset = 0;
-        let params;
-        let ranRoute = false;
-        let route;
-        runner();
+    function defineRoute(method, path, args) {
 
-        function runner() {
-            let hasPathMatch = false;
-            let match = false;
-
-            // find the next route that matches the path
-            for (let i = offset; i < routes.length; i++) {
-                offset = i + 1;
-                route = routes[i];
-                params = route.parser(req.path);
-                if (params) {
-                    hasPathMatch = true;
-                    if (route.method === method || route.method === 'all') {
-                        req.params = params;
-                        match = true;
-                        break;
-                    } else {
-                        server.log('method-mismatch', route.method.toUpperCase() + ' ' + route.path, route);
-                    }
-                }
+        // validate each supplied middleware for route
+        const middleware = [];
+        for (let i = 1; i < args.length; i++) {
+            const mw = args[i];
+            if (typeof mw !== 'function') {
+                const err = Error('Invalid path handler specified. Expected a function. Received: ' + mw);
+                err.code = 'ESSRHDLR';
+                throw err;
             }
-
-            // if there is no match then exit
-            if (!match) {
-                if (hasPathMatch) {
-                    res.body('Method Not Supported');
-                    res.status(405);
-                }
-                if (ranRoute) server.log('non-terminal', 'Executed routes did not send response.');
-                server.log('next', 'Passing request to next middleware');
-                next();
-                return;
-            }
-
-            // execute the route
-            server.log('execute-route', route.method.toUpperCase() + ' ' + route.path, route);
-            ranRoute = true;
-            route.runner.call(server, req, res, function(err) {
-                if (err) return next(err);
-                runner();
-            });
+            middleware.push(mw);
         }
+
+        routes.push({
+            method: method.toUpperCase(),
+            parser: pathParser.parser(path, config.paramFormat, !config.caseInsensitive),
+            path: path,
+            runner: function(req, res, next) {
+                const chain = middleware.slice(0);
+                runMiddleware(this, chain, req, res, next);
+            }
+        });
+
+        return router;
+    }
+
+    // define the router middleware
+    const router = function Router(req, res, next) {
+        const server = this;
+        const state = {
+            method: req.method.toUpperCase(),
+            params: {},
+            routes: routes.concat(),
+            routeUnhandled: true,
+            server: server,
+        };
+        run(state, req, res, () => {
+            req.params = state.params;
+            if (state.routeUnhandled) server.log('unhandled', 'Router had no matching paths', {});
+            next();
+        });
     };
-    Object.assign(router, Router);
-    Object.defineProperty(router, 'routes', { get: getRoutes });
 
-    // create the store
-    map.set(router, {
-        config: config,
-        routes: routes
-    });
+    // add static properties to the router function
+    router.all = function(path, middleware) { return defineRoute('all', path, arguments) };
+    methods.forEach(method => router[method] = function(path, middleware) { return defineRoute(method, path, arguments) });
+    Object.defineProperty(router, 'routes', { enumerable: true, value: routes });
 
-    // return the route
     return router;
+};
+
+function run(state, req, res, next) {
+    let route;
+
+    // run is complete
+    if (state.routes.length === 0) return next();
+
+    // test each route and execute matching routes
+    while (route = state.routes.shift()) {
+        const params = route.parser(req.path);
+        if (params && (route.method === state.method || route.method === 'all')) {
+            state.routeUnhandled = false;
+            req.params = params;
+            Object.assign(state.params, params);
+
+            state.server.log('execute-handler', route.method + ' ' + route.path, route);
+            route.runner.call(state.server, req, res, () => {
+                run(state, req, res, next);
+            });
+
+            return;
+        }
+    }
+
+    next();
 }
 
+
+
 /**
- * Create a route that works for any method.
+ * Router middleware.
+ * @function Router
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
+ */
+
+/**
+ * @memberOf Router
+ * @static
+ * @function all
  * @param {string} path
- * @param {...function} middleware
+ * @param {...Function} handler
  * @returns {Router}
  */
-Router.all = function(path, middleware) {
-    definePath(this, 'all', path, arguments);
-    return this;
-};
 
 /**
- * Create a route that works for DELETE method.
- * @param {string|RegExp} path
- * @param {...function} middleware
- * @returns {Router}
- */
-Router.delete = function(path, middleware) {
-    definePath(this, 'delete', path, arguments);
-    return this;
-};
-
-/**
- * Create a route that works for GET method.
+ * @memberOf Router
+ * @static
+ * @function delete
  * @param {string} path
- * @param {...function} middleware
+ * @param {...Function} handler
  * @returns {Router}
  */
-Router.get = function(path, middleware) {
-    definePath(this, 'get', path, arguments);
-    return this;
-};
 
 /**
- * Create a route that works for HEAD method.
+ * @memberOf Router
+ * @static
+ * @function get
  * @param {string} path
- * @param {...function} middleware
+ * @param {...Function} handler
  * @returns {Router}
  */
-Router.head = function(path, middleware) {
-    definePath(this, 'head', path, arguments);
-    return this;
-};
 
 /**
- * Create a route that works for OPTIONS method.
+ * @memberOf Router
+ * @static
+ * @function head
  * @param {string} path
- * @param {...function} middleware
+ * @param {...Function} handler
  * @returns {Router}
  */
-Router.options = function(path, middleware) {
-    definePath(this, 'options', path, arguments);
-    return this;
-};
 
 /**
- * Create a route that works for PATCH method.
+ * @memberOf Router
+ * @static
+ * @function options
  * @param {string} path
- * @param {...function} middleware
+ * @param {...Function} handler
  * @returns {Router}
  */
-Router.patch = function(path, middleware) {
-    definePath(this, 'patch', path, arguments);
-    return this;
-};
 
 /**
- * Create a route that works for POST method.
+ * @memberOf Router
+ * @static
+ * @function patch
  * @param {string} path
- * @param {...function} middleware
+ * @param {...Function} handler
  * @returns {Router}
  */
-Router.post = function(path, middleware) {
-    definePath(this, 'post', path, arguments);
-    return this;
-};
 
 /**
- * Create a route that works for PUT method.
+ * @memberOf Router
+ * @static
+ * @function post
  * @param {string} path
- * @param {...function} middleware
+ * @param {...Function} handler
  * @returns {Router}
  */
-Router.put = function(path, middleware) {
-    definePath(this, 'put', path, arguments);
-    return this;
-};
 
 /**
- * Get the routes assigned to the router.
- * @type {Object<string,Array>}
+ * @memberOf Router
+ * @static
+ * @function put
+ * @param {string} path
+ * @param {...Function} handler
+ * @returns {Router}
  */
-Object.defineProperty(Router, 'routes', {
-    get: getRoutes
-});
 
 /**
- * List the http methods that have functions.
- * @type {string[]}
+ * @memberOf Router
+ * @static
+ * @name routes
+ * @type {Array}
  */
-Router.methods = ['delete', 'get', 'head', 'options', 'patch', 'post', 'put'];
 
-function definePath(context, method, path, args) {
-    const router = getRouter(context);
-    const parser = pathParser.parser(path, router.config.paramFormat, !router.config.caseInsensitive);
-    const runner = getMiddlewareRunner(args);
-    router.routes.push({
-        method: method,
-        parser: parser,
-        path: path,
-        runner: runner
-    });
-}
+
+
+
+
 
 function getConfig(configuration) {
     if (!configuration) configuration = {};
@@ -221,35 +211,6 @@ function getConfig(configuration) {
             'Expected one of: colon, handlebar, doubleHandlebar. Received: ' + config.paramFormat);
     }
     return config;
-}
-
-function getMiddlewareRunner(args) {
-    const middleware = [];
-    for (let i = 1; i < args.length; i++) {
-        const mw = args[i];
-        if (typeof mw !== 'function') {
-            const err = Error('Invalid path handler specified. Expected a function. Received: ' + mw);
-            err.code = 'ESSRHDLR';
-            throw err;
-        }
-        middleware.push(mw);
-    }
-    return function(req, res, next) {
-        const chain = middleware.slice(0);
-        runMiddleware(this, chain, req, res, next);
-    }
-}
-
-function getRouter(router) {
-    if (map.has(router)) return map.get(router);
-    const err = Error('Invalid context. This must be a Router instance. Received: ' + router);
-    err.code = 'ESSRCTX';
-    throw err;
-}
-
-function getRoutes() {
-    const router = getRouter(this);
-    return router.routes;
 }
 
 function runMiddleware(context, chain, req, res, next) {
