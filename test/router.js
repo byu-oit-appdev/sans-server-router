@@ -16,8 +16,6 @@
  **/
 'use strict';
 const expect                = require('chai').expect;
-const Request               = require('sans-server').Request;
-const Response              = require('sans-server').Response;
 const Router                = require('../bin/router');
 const SansServer            = require('sans-server');
 
@@ -204,63 +202,261 @@ describe('router', () => {
             });
     });
 
-    it('parser parameters', () => {
-        const num = '' + Math.random();
-        const server = SansServer();
-        const router = Router()
-            .get('/foo/:first/bar/:second*', function(req, res, next) {
-                expect(req.params.first).to.equal('abc');
-                expect(req.params.second).to.equal('def/ghi');
-                res.send();
-            });
-        server.use(router);
-        return server.request({ method: 'GET', path: '/foo/abc/bar/def/ghi' })
-            .then(res => {
-                expect(!res.error).to.be.true;
-            });
-    });
+    describe('param format', () => {
 
-    it('updates parser parameters', () => {
-        const server = SansServer();
-        const router = Router()
-            .get('/foo/:first/bar/:second*', function(req, res, next) {
-                expect(req.params.first).to.equal('abc');
-                expect(req.params.second).to.equal('def/ghi');
-                next();
-            })
-            .get('/foo/:first/bar/:second/:third', function(req, res, next) {
-                expect(req.params.first).to.equal('abc');
-                expect(req.params.second).to.equal('def');
-                expect(req.params.third).to.equal('ghi');
-                res.send();
-            });
-        server.use(router);
-        return server.request({ method: 'GET', path: '/foo/abc/bar/def/ghi' })
-            .then(res => {
-                expect(!res.error).to.be.true;
-            });
-    });
-
-    it('can be used as middleware', done => {
-        const server = SansServer({ supportedMethods: ['GET'] });
-        const router = Router();
-        const num = '' + Math.random();
-
-        router.get('/foo', function(req, res) {
-            res.send(num)
+        it('default', () => {
+            const server = SansServer();
+            const router = Router()
+                .get('/foo/:first/bar/:second*', function(req, res, next) {
+                    expect(req.params.first).to.equal('abc');
+                    expect(req.params.second).to.equal('def/ghi');
+                    res.send();
+                });
+            server.use(router);
+            return server.request({ method: 'GET', path: '/foo/abc/bar/def/ghi' })
+                .then(res => {
+                    expect(!res.error).to.be.true;
+                });
         });
 
-        server.use(router);
+        it('colon', () => {
+            const server = SansServer();
+            const router = Router({ paramFormat: 'colon' })
+                .get('/foo/:first', function(req, res, next) {
+                    expect(req.params.first).to.equal('abc');
+                    res.send();
+                });
+            server.use(router);
+            return server.request({ method: 'GET', path: '/foo/abc' })
+                .then(res => {
+                    expect(!res.error).to.be.true;
+                });
+        });
 
-        server.request({ method: 'GET', path: '/foo' }, function(res) {
-            expect(res.body).to.equal(num);
-            done();
+        it('handlebar', () => {
+            const server = SansServer();
+            const router = Router({ paramFormat: 'handlebar' })
+                .get('/foo/{first}', function(req, res, next) {
+                    expect(req.params.first).to.equal('abc');
+                    res.send();
+                });
+            server.use(router);
+            return server.request({ method: 'GET', path: '/foo/abc' })
+                .then(res => {
+                    expect(!res.error).to.be.true;
+                });
+        });
+
+        it('doubleHandlebar', () => {
+            const server = SansServer();
+            const router = Router({ paramFormat: 'doubleHandlebar' })
+                .get('/foo/{{first}}', function(req, res, next) {
+                    expect(req.params.first).to.equal('abc');
+                    res.send();
+                });
+            server.use(router);
+            return server.request({ method: 'GET', path: '/foo/abc' })
+                .then(res => {
+                    expect(!res.error).to.be.true;
+                });
+        });
+
+        it('invalid', () => {
+            expect(() => Router({ paramFormat: 'invalid' })).to.throw(Error);
+        });
+
+    });
+
+    describe('case sensitivity', () => {
+
+        it('default with correct case', () => {
+            const server = SansServer();
+            const router = Router().get('/abc', function(req, res, next) { res.send('ok'); });
+            server.use(router);
+            return server.request({ method: 'GET', path: '/abc' }).then(res => expect(res.body).to.equal('ok'));
+        });
+
+        it('default with incorrect case', () => {
+            const server = SansServer();
+            const router = Router().get('/abc', function(req, res, next) { res.send('ok'); });
+            server.use(router);
+            return server.request({ method: 'GET', path: '/ABC' }).then(res => expect(res.body).to.equal('ok'));
+        });
+
+        it('insensitive with correct case', () => {
+            const server = SansServer();
+            const router = Router({ caseInsensitive: true }).get('/abc', function(req, res, next) { res.send('ok'); });
+            server.use(router);
+            return server.request({ method: 'GET', path: '/abc' }).then(res => expect(res.body).to.equal('ok'));
+        });
+
+        it('insensitive with incorrect case', () => {
+            const server = SansServer();
+            const router = Router({ caseInsensitive: true }).get('/abc', function(req, res, next) { res.send('ok'); });
+            server.use(router);
+            return server.request({ method: 'GET', path: '/ABC' }).then(res => expect(res.body).to.equal('ok'));
+        });
+
+        it('sensitive with correct case', () => {
+            const server = SansServer();
+            const router = Router({ caseInsensitive: false }).get('/abc', function(req, res, next) { res.send('ok'); });
+            server.use(router);
+            return server.request({ method: 'GET', path: '/abc' }).then(res => expect(res.body).to.equal('ok'));
+        });
+
+        it('sensitive with incorrect case', () => {
+            const server = SansServer();
+            const router = Router({ caseInsensitive: false }).get('/abc', function(req, res, next) { res.send('ok'); });
+            server.use(router);
+            return server.request({ method: 'GET', path: '/ABC' }).then(res => expect(res.body).to.equal('Not Found'));
+        });
+    });
+
+    describe('parameter parser', () => {
+
+        it('parses parameters', () => {
+            const server = SansServer();
+            const router = Router()
+                .get('/foo/:first/bar/:second*', function(req, res, next) {
+                    expect(req.params.first).to.equal('abc');
+                    expect(req.params.second).to.equal('def/ghi');
+                    res.send();
+                });
+            server.use(router);
+            return server.request({ method: 'GET', path: '/foo/abc/bar/def/ghi' })
+                .then(res => {
+                    expect(!res.error).to.be.true;
+                });
+        });
+
+        it('updates parsed parameters per path', () => {
+            const server = SansServer();
+            const router = Router()
+                .get('/foo/:first/bar/:second*', function(req, res, next) {
+                    expect(req.params.first).to.equal('abc');
+                    expect(req.params.second).to.equal('def/ghi');
+                    next();
+                })
+                .get('/foo/:first/bar/:second/:third', function(req, res, next) {
+                    expect(req.params.first).to.equal('abc');
+                    expect(req.params.second).to.equal('def');
+                    expect(req.params.third).to.equal('ghi');
+                    res.send();
+                });
+            server.use(router);
+            return server.request({ method: 'GET', path: '/foo/abc/bar/def/ghi' })
+                .then(res => {
+                    expect(!res.error).to.be.true;
+                });
+        });
+
+        it('updates parsed parameters per path', () => {
+            const server = SansServer();
+            const router = Router()
+                .get('/foo/:first/bar/:rest*', function(req, res, next) {
+                    expect(req.params.first).to.equal('abc');
+                    expect(req.params.rest).to.equal('def/ghi');
+                    next();
+                })
+                .get('/foo/:first/bar/:second/:third', function(req, res, next) {
+                    expect(req.params.first).to.equal('abc');
+                    expect(req.params.second).to.equal('def');
+                    expect(req.params.third).to.equal('ghi');
+                    next();
+                })
+                .get('/foo/abc/:first/:second/:third', function(req, res, next) {
+                    expect(req.params.first).to.equal('bar');
+                    expect(req.params.second).to.equal('def');
+                    expect(req.params.third).to.equal('ghi');
+                    next();
+                });
+            server.use(router);
+            server.use((req, res) => res.send(req.params));
+            return server.request({ method: 'GET', path: '/foo/abc/bar/def/ghi' })
+                .then(res => {
+                    const data = JSON.parse(res.body);
+                    expect(data).to.deep.equal({
+                        first: 'bar',       // overwritten
+                        second: 'def',
+                        third: 'ghi',
+                        rest: 'def/ghi'
+                    });
+                    expect(!res.error).to.be.true;
+                });
+        });
+
+    });
+
+    describe('handlers', () => {
+
+        it('can define handler', done => {
+            const server = SansServer({ supportedMethods: ['GET'] });
+            const router = Router();
+            const num = '' + Math.random();
+
+            router.get('/foo', function(req, res) {
+                res.send(num)
+            });
+
+            server.use(router);
+
+            server.request({ method: 'GET', path: '/foo' }, function(res) {
+                expect(res.body).to.equal(num);
+                done();
+            });
+        });
+
+        it('send and next does not call next route', done => {
+            const server = SansServer({ supportedMethods: ['GET'] });
+            const router = Router();
+            let visited = false;
+
+            router.get('/foo', function(req, res, next) {
+                res.send('');
+                next();
+            });
+
+            router.get('/foo', function(req, res, next) {
+                visited = true;
+                next();
+            });
+
+            server.use(router);
+
+            server.request({ method: 'GET', path: '/foo' }, function() {
+                expect(visited).to.be.false;
+                done();
+            });
+        });
+
+        it('send and next does not call next handler', done => {
+            const server = SansServer({ supportedMethods: ['GET'] });
+            const router = Router();
+            let visited = false;
+
+            router.get('/foo',
+                function(req, res, next) {
+                    res.send('');
+                    next();
+                },
+                function(req, res, next) {
+                    visited = true;
+                    next();
+                });
+
+            server.use(router);
+
+            server.request({ method: 'GET', path: '/foo' }, function() {
+                expect(visited).to.be.false;
+                done();
+            });
         });
     });
 
     it('can send a 404', () => {
         const server = SansServer();
         const router = Router();
+        router.get('/abc', function(req, res) {});
         server.use(router);
         return server.request({ method: 'GET', path: '/' })
             .then(res => {
@@ -268,21 +464,43 @@ describe('router', () => {
             });
     });
 
-    it('can send a 405', () => {
+    it('can get defined routes', () => {
+        const router = Router();
+        const noop = function() {};
+        router.get('/', noop);
+        router.post('/', noop);
+
+        const routes = router.routes;
+        expect(routes.length).to.equal(2);
+    });
+
+    it('will not do next after send', () => {
         const server = SansServer();
         const router = Router();
 
-        router.get('/foo', function(req, res) {
-            res.send('ok')
+        router.get('/', function(req, res, next) {
+            res.send('ok');
+            next();
+        });
+
+        router.get('/', function(req, res, next) {
+            res.send('fail');
         });
 
         server.use(router);
 
-        return server.request({ method: 'POST', path: '/foo' })
+        return server.request({ path: '/' })
             .then(function(res) {
-                expect(res.statusCode).to.equal(405);
+                expect(res.body).to.equal('ok');
+                return timeout(500);
             });
     });
 });
 
 function noop() {}
+
+function timeout(delay) {
+    return new Promise(function(resolve) {
+        setTimeout(resolve, delay);
+    });
+}
