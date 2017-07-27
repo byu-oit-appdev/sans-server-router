@@ -19,11 +19,7 @@ const SansServer    = require('sans-server');
 const server = SansServer();
 
 // define the router
-const router = Router({
-    caseInsensitive: true,
-    paramFormat: 'colon',
-    passThrough: false
-});
+const router = Router();
 
 // add the router as middleware
 server.use(router);
@@ -40,25 +36,29 @@ server.request({ method: 'GET', path: '/api/content/1234' })
     });
 ```
 
-## Router Options
+## Define a Router
 
-The router has some options that can be configured that affect the way that routing occurs.
+A router can take an optional configuration with these options:
 
-### caseInsensitive
+- *caseInsensitive* - Setting this option to `false` will require that the letter case (upper or lower) must match the defined path. Defaults to `true`.
 
-Defaults to `true`.
+- *paramFormat* - This option affects how you write your path parameters. Defaults to `colon`. Possible values include:
 
-Setting this option to `false` will require that the letter case (upper or lower) must match the defined path.
+    - *colon* - `'/path/:param1'`
+    
+    - *handlebar* - `'/path/{param1}'`
+    
+    - *doubleHandlebar* - `'/path/{{param1}}'`
+    
+**Example**
 
-### paramFormat
-
-Defaults to `"colon"` but can also be set to `"handlebar"` or `"doubleHandlebar"`.
-
-This option affects how you write your path parameters. For example:
-
-- *colon* - `'/path/:param1'`
-- *handlebar* - `'/path/{param1}'`
-- *doubleHandlebar* - `'/path/{{param1}}'`
+```js
+const Router        = require('sans-server-router');
+const router = Router({
+    ignoreCase: true,
+    paramFormat: 'colon'
+});
+```
 
 ## Defining Routes
 
@@ -66,9 +66,9 @@ Routes can be defined for the following methods: `delete`, `get`, `head`, `optio
 
 Each of these methods has the same signature. The `get` method is demonstrated here:
 
-### #get ( path : String|RegExp, ...callback : Function ) : SansServer
+**Signature:** `get ( path : String|RegExp, ...callback : Function ) : SansServer`
 
-**Parameters**
+**Parameters:**
 
 - *path* - The [path definition](#paths). This can be a [static path](#static-paths), a [path with parameters](#parameter-paths), or a [regular expression](#regular-expressions).
 
@@ -89,7 +89,7 @@ const SansServer    = require('sans-server');
 const router = Router();
 const server = SansServer();
 
-server.use(router));
+server.use(router);
 
 // define static path for GET method
 server.get('/path', function(req, res, next) {
