@@ -66,7 +66,7 @@ module.exports = function(configuration) {
             server: server,
         };
         run(state, req, res, () => {
-            req.params = state.params;
+            req.params = {};
             if (state.routeUnhandled) server.log('unhandled', 'Router had no matching paths', {});
             next();
         });
@@ -92,7 +92,6 @@ function run(state, req, res, next) {
         if (params && (route.method === state.method || route.method === 'all')) {
             state.routeUnhandled = false;
             req.params = params;
-            Object.assign(state.params, params);
 
             state.server.log('execute-handler', route.method + ' ' + route.path, route);
             route.runner.call(state.server, req, res, () => {
