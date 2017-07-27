@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/byu-oit/sans-server-router.svg?branch=master)](https://travis-ci.org/byu-oit/sans-server-router)
+[![Coverage Status](https://coveralls.io/repos/github/byu-oit/sans-server-router/badge.svg?branch=master)](https://coveralls.io/github/byu-oit/sans-server-router?branch=master)
+
 # Sans-Server-Router
 
 A router middleware built for [Sans-Server](https://npmjs.com/packages/sans-server).
