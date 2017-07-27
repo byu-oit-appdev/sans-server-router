@@ -131,7 +131,7 @@ router.get('/path/foo', function(req, res, next) {
 
 // this will match many paths
 router.get('/path/:name', function(req, res, next) {
-    res.send('Path ' + req.params.name ' is foo? ' + req.isFoo);
+    res.send('Path ' + req.params.name + ' is foo? ' + req.isFoo);
 });
 ```
 
