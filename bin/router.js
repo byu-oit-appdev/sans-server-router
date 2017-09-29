@@ -16,6 +16,7 @@
  **/
 'use strict';
 const pathParser            = require('./path-parser');
+const Middleware            = require('sans-server-middleware');
 
 const methods = ['delete', 'get', 'head', 'options', 'patch', 'post', 'put'];
 
@@ -30,26 +31,16 @@ module.exports = function(configuration) {
 
     function defineRoute(method, path, args) {
 
-        // validate each supplied middleware for route
-        const middleware = [];
-        for (let i = 1; i < args.length; i++) {
-            const mw = args[i];
-            if (typeof mw !== 'function') {
-                const err = Error('Invalid path handler specified. Expected a function. Received: ' + mw);
-                err.code = 'ESSRHDLR';
-                throw err;
-            }
-            middleware.push(mw);
-        }
+        // create middleware runner
+        const middleware = new Middleware('router');
+        for (let i = 1; i < args.length; i++) middleware.add(args[i]);
 
+        // store route
         routes.push({
             method: method.toUpperCase(),
             parser: pathParser.parser(path, config.paramFormat, !config.caseInsensitive),
             path: path,
-            runner: function(req, res, next) {
-                const chain = middleware.slice(0);
-                runMiddleware(this, chain, req, res, next);
-            }
+            middleware: middleware
         });
 
         return router;
@@ -65,10 +56,10 @@ module.exports = function(configuration) {
             routeUnhandled: true,
             server: server,
         };
-        run(state, req, res, () => {
+        run(state, req, res, err => {
             req.params = {};
-            if (state.routeUnhandled) server.log('unhandled', 'Router had no matching paths', {});
-            next();
+            if (state.routeUnhandled) req.log('unhandled', 'Router had no matching paths');
+            next(err);
         });
     };
 
@@ -80,125 +71,86 @@ module.exports = function(configuration) {
     return router;
 };
 
-function run(state, req, res, next) {
-    let route;
 
-    // run is complete
-    if (state.routes.length === 0) return next();
-
-    // test each route and execute matching routes
-    while (route = state.routes.shift()) {
-        const params = route.parser(req.path);
-        if (params && (route.method === state.method || route.method === 'all')) {
-            state.routeUnhandled = false;
-            req.params = params;
-
-            state.server.log('execute-handler', route.method + ' ' + route.path, route);
-            route.runner.call(state.server, req, res, () => {
-                run(state, req, res, next);
-            });
-
-            return;
-        }
-    }
-
-    next();
-}
 
 
 
 /**
  * Router middleware.
  * @function Router
+ * @constructor
  * @param {Request} req
  * @param {Response} res
  * @param {Function} next
  */
 
 /**
- * @memberOf Router
- * @static
- * @function all
+ * @function Router#all
  * @param {string} path
  * @param {...Function} handler
  * @returns {Router}
  */
 
 /**
- * @memberOf Router
- * @static
- * @function delete
+ * @function Router#delete
  * @param {string} path
  * @param {...Function} handler
  * @returns {Router}
  */
 
 /**
- * @memberOf Router
- * @static
- * @function get
+ * @function Router#get
  * @param {string} path
  * @param {...Function} handler
  * @returns {Router}
  */
 
 /**
- * @memberOf Router
- * @static
- * @function head
+ * @function Router#head
  * @param {string} path
  * @param {...Function} handler
  * @returns {Router}
  */
 
 /**
- * @memberOf Router
- * @static
- * @function options
+ * @function Router#options
  * @param {string} path
  * @param {...Function} handler
  * @returns {Router}
  */
 
 /**
- * @memberOf Router
- * @static
- * @function patch
+ * @function Router#patch
  * @param {string} path
  * @param {...Function} handler
  * @returns {Router}
  */
 
 /**
- * @memberOf Router
- * @static
- * @function post
+ * @function Router#post
  * @param {string} path
  * @param {...Function} handler
  * @returns {Router}
  */
 
 /**
- * @memberOf Router
- * @static
- * @function put
+ * @function Router#put
  * @param {string} path
  * @param {...Function} handler
  * @returns {Router}
  */
 
 /**
- * @memberOf Router
- * @static
- * @name routes
+ * @name Router#routes
  * @type {Array}
  */
 
 
-
-
-
-
+/**
+ * @private
+ * @param configuration
+ * @returns {{caseInsensitive: boolean, paramFormat: string}}
+ */
 function getConfig(configuration) {
     if (!configuration) configuration = {};
     const config = {
@@ -212,18 +164,33 @@ function getConfig(configuration) {
     return config;
 }
 
-function runMiddleware(context, chain, req, res, next) {
-    if (chain.length > 0 && !res.sent) {
-        const callback = chain.shift();
-        try {
-            callback.call(context, req, res, function (err) {
-                if (err && !res.sent) return res.send(err);
-                runMiddleware(context, chain, req, res, next);
+/**
+ * @private
+ * @param state
+ * @param req
+ * @param res
+ * @param next
+ * @returns {*}
+ */
+function run(state, req, res, next) {
+    let route;
+
+    // run is complete
+    if (state.routes.length === 0) return next();
+
+    // test each route and execute matching routes
+    while (route = state.routes.shift()) {
+        const params = route.parser(req.path);
+        if (params && (route.method === state.method || route.method === 'all')) {
+            state.routeUnhandled = false;
+            req.params = params;
+            route.middleware.run(req, res, function(err) {
+                if (err || res.sent || !state.routes.length) return next(err);
+                run(state, req, res, next);
             });
-        } catch (e) {
-            res.send(e);
+            return;
         }
-    } else if (!res.sent) {
-        next();
     }
+
+    next();
 }
