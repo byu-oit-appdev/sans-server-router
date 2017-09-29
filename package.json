@@ -6,13 +6,15 @@
   "directories": {
     "test": "test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "sans-server-middleware": "^1.4.2"
+  },
   "devDependencies": {
     "chai": "^3.5.0",
-    "coveralls": "^2.13.1",
-    "mocha": "^3.2.0",
+    "coveralls": "^2.13.3",
+    "mocha": "^3.5.3",
     "nyc": "^10.0.0",
-    "sans-server": "*"
+    "sans-server": "^2.0.0"
   },
   "scripts": {
     "test": "mocha test/*.js",
