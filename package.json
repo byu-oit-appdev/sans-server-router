@@ -1,13 +1,13 @@
 {
   "name": "sans-server-router",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "An express like router for sans-server.",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "dependencies": {
-    "sans-server-middleware": "^1.4.3"
+    "sans-server-middleware": "^1.4.5"
   },
   "devDependencies": {
     "chai": "^3.5.0",
